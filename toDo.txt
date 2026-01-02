@@ -1,0 +1,13 @@
+1. type olarak tanımlayalım status, completed, canceled işini. başka da ekleyebilelim event status
+örneğin yeni bir status şu olabilir: etkinlik yaklaşıyor(arda gönüllü :D)
+
+2. rozetler. yeni tablo?. trigglerlar le rozetleri kazanma senaryoalrı yazıalcak. kullanıcıların, rotaların rozetleri olabilir.
+bu sayede örneğin kullanıcıları rozetlereine göre sıralarız ya da rotaları rozetlere göre sıralarız daha iyi rotaları görebiliriz fln.
+
+3. popüler rotalar view'ı.
+
+4. kullanıcı aratabilme, etkinlik aratabilme, durak aratabilme(vakit kalırsa kulüp kurma ve aratabilme bence sence ya ööf de yaz)
+
+5. arkadaşlıklar tablosu açılabilir. (kendi kendine dönen ilişki?).
+
+6. etkinlik kategorileri yapılabilir. (yeni tablo)

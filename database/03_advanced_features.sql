@@ -1,8 +1,25 @@
 -- ==========================================
--- 1. VIEW (SANAL TABLO) [Proje Madde 6]
+-- 1. VIEW: POPÜLER ROTALAR (GÜNCELLENDİ: PUANLAMA EKLENDİ)
 -- ==========================================
--- Amaç: Kullanıcıların puan durumunu (Liderlik Tablosu) gösteren bir View.
--- Arayüzde "Liderler" sayfasına tıklandığında bu çalışacak.
+CREATE OR REPLACE VIEW view_popular_routes AS
+SELECT 
+    r.route_name,
+    r.difficulty_level,
+    r.distance_km,
+    u.username AS creator_name,
+    COUNT(DISTINCT e.event_id) AS event_count,
+    ROUND(AVG(rr.rating), 1) AS average_rating, -- YENİ: Ortalama Puan (Örn: 4.5)
+    COUNT(DISTINCT rr.review_id) AS review_count
+FROM routes r
+JOIN users u ON r.creator_id = u.user_id
+LEFT JOIN events e ON r.route_id = e.route_id
+LEFT JOIN route_reviews rr ON r.route_id = rr.route_id -- Yorumları bağladık
+GROUP BY r.route_id, r.route_name, r.difficulty_level, r.distance_km, u.username
+ORDER BY event_count DESC, average_rating DESC;
+
+-- ==========================================
+-- 2. VIEW: LİDERLİK TABLOSU
+-- ==========================================
 CREATE OR REPLACE VIEW view_leaderboard AS
 SELECT 
     RANK() OVER (ORDER BY total_points DESC) as siralama,
@@ -10,124 +27,76 @@ SELECT
     role,
     total_points
 FROM users
-WHERE role != 'admin'; -- Adminleri sıralamaya katmıyoruz
+WHERE role != 'admin';
 
 -- ==========================================
--- 2. INDEX (PERFORMANS) [Proje Madde 7]
+-- 3. PERFORMANS İÇİN INDEXLER
 -- ==========================================
--- Amaç: Rota isimlerine göre arama yapıldığında (LIKE %...%) hızlı sonuç dönmesi.
-CREATE INDEX idx_route_name ON routes(route_name);
+CREATE INDEX idx_user_search ON users(username);
+CREATE INDEX idx_route_search ON routes(route_name);
+CREATE INDEX idx_stop_search ON stops(location_name);
+CREATE INDEX idx_club_search ON clubs(club_name);
+CREATE INDEX idx_event_date ON events(event_date);
 
 -- ==========================================
--- 3. KARMAŞIK SORGULAR [Proje Madde 9 & 10]
+-- 4. KARMAŞIK SORGULAR
 -- ==========================================
-
--- A) Aggregate & Having (Madde 10):
--- En az 2 tane "Zor" (Hard) seviye rota oluşturmuş kullanıcıları listele.
--- (GROUP BY ve HAVING kullanımı)
-SELECT u.username, COUNT(r.route_id) as zor_rota_sayisi
-FROM users u
-JOIN routes r ON u.user_id = r.creator_id
-WHERE r.difficulty_level = 'Hard'
-GROUP BY u.username
-HAVING COUNT(r.route_id) >= 2;
-
--- B) Union / Intersect / Except (Madde 9):
--- Hem etkinlik düzenleyen (Organizer) HEM DE etkinliğe katılan (Participant) aktif kullanıcılar.
--- (INTERSECT Kullanımı)
-SELECT organizer_id FROM events
-INTERSECT
-SELECT user_id FROM participations;
+-- Kulüp Başkanları
+SELECT c.club_name, u.username as president
+FROM clubs c
+JOIN users u ON c.owner_id = u.user_id;
 
 -- ==========================================
--- 4. FONKSİYONLAR (STORED PROCEDURES) [Proje Madde 11]
+-- 5. TRIGGER: ROZET KAZANMA + BİLDİRİM (GÜNCELLENDİ) 🔔
 -- ==========================================
-
--- Fonksiyon 1: Parametre alan ve değer döndüren basit fonksiyon.
--- Görevi: Bir kullanıcının tamamladığı toplam mesafe (KM) bilgisini döner.
-CREATE OR REPLACE FUNCTION get_user_total_distance(p_user_id INTEGER)
-RETURNS DECIMAL AS $$
+CREATE OR REPLACE FUNCTION check_and_award_badges()
+RETURNS TRIGGER AS $$
 DECLARE
-    total_dist DECIMAL := 0;
+    target_badge RECORD;
 BEGIN
-    SELECT COALESCE(SUM(r.distance_km), 0)
-    INTO total_dist
-    FROM participations p
-    JOIN events e ON p.event_id = e.event_id
-    JOIN routes r ON e.route_id = r.route_id
-    WHERE p.user_id = p_user_id AND p.is_completed = true;
-    
-    RETURN total_dist;
-END;
-$$ LANGUAGE plpgsql;
-
--- Fonksiyon 2: RECORD ve CURSOR Kullanımı (Madde 11 - Zorunlu)
--- Görevi: Belirli bir zorluk seviyesindeki rotaları tek tek gezip raporlayan fonksiyon.
-CREATE OR REPLACE FUNCTION analyze_routes_by_difficulty(p_level VARCHAR)
-RETURNS TEXT AS $$
-DECLARE
-    -- Cursor Tanımı
-    route_cursor CURSOR FOR SELECT route_name, distance_km FROM routes WHERE difficulty_level = p_level;
-    route_record RECORD; -- Record Tanımı
-    result_text TEXT := '';
-BEGIN
-    OPEN route_cursor;
-    
-    LOOP
-        FETCH route_cursor INTO route_record;
-        EXIT WHEN NOT FOUND;
-        
-        -- Her satır için işlem yapılıyor
-        result_text := result_text || 'Rota: ' || route_record.route_name || ' (' || route_record.distance_km || ' km) - ';
+    FOR target_badge IN SELECT * FROM badges WHERE badge_type = 'User' LOOP
+        IF NEW.total_points >= target_badge.required_value THEN
+            IF NOT EXISTS (SELECT 1 FROM user_badges WHERE user_id = NEW.user_id AND badge_id = target_badge.badge_id) THEN
+                
+                -- 1. Rozeti Ver
+                INSERT INTO user_badges (user_id, badge_id) VALUES (NEW.user_id, target_badge.badge_id);
+                
+                -- 2. OTOMATİK BİLDİRİM GÖNDER! (YENİ)
+                INSERT INTO notifications (user_id, message) 
+                VALUES (NEW.user_id, 'Tebrikler! Yeni bir rozet kazandınız: ' || target_badge.badge_name);
+                
+                RAISE NOTICE 'Rozet verildi ve bildirim atıldı: %', NEW.username;
+            END IF;
+        END IF;
     END LOOP;
-    
-    CLOSE route_cursor;
-    RETURN result_text;
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Fonksiyon 3: Tablo Döndüren Fonksiyon
--- Görevi: Tarihi geçmiş ama hala 'active' görünen etkinlikleri bulur.
-CREATE OR REPLACE FUNCTION get_expired_active_events()
-RETURNS TABLE(event_name text, event_date timestamp) AS $$
-BEGIN
-    RETURN QUERY 
-    SELECT ('Etkinlik #' || event_id)::text, e.event_date
-    FROM events e
-    WHERE e.event_date < NOW() AND e.status = 'active';
-END;
-$$ LANGUAGE plpgsql;
+CREATE TRIGGER trg_award_user_badge
+AFTER UPDATE OF total_points ON users
+FOR EACH ROW
+EXECUTE FUNCTION check_and_award_badges();
 
 -- ==========================================
--- 5. TRIGGERLAR (TETİKLEYİCİLER) [Proje Madde 12]
+-- 6. TRIGGER: PUAN HESAPLAMA
 -- ==========================================
-
--- Trigger 1: Puan Sistemi
--- Senaryo: Bir kullanıcı etkinliği tamamladığında (is_completed = true olduğunda)
--- otomatik olarak puanı artsın. (1 km = 10 Puan)
 CREATE OR REPLACE FUNCTION update_points_on_completion()
 RETURNS TRIGGER AS $$
 DECLARE
     route_km DECIMAL;
     points_to_add INTEGER;
 BEGIN
-    -- Sadece tamamlandı olarak işaretlendiyse çalış
     IF NEW.is_completed = true AND OLD.is_completed = false THEN
-        -- Rotanın mesafesini bul
         SELECT r.distance_km INTO route_km
         FROM events e
         JOIN routes r ON e.route_id = r.route_id
         WHERE e.event_id = NEW.event_id;
         
-        -- Puan hesapla (Örn: 5.5 km -> 55 puan)
         points_to_add := CAST(route_km * 10 AS INTEGER);
         
-        -- Kullanıcının puanını güncelle
         UPDATE users SET total_points = total_points + points_to_add
         WHERE user_id = NEW.user_id;
-        
-        -- Bilgilendirme (Log veya Console) - Hocanın istediği mesaj kısmı
-        RAISE NOTICE 'Kullanıcı % puan kazandı: %', NEW.user_id, points_to_add;
     END IF;
     RETURN NEW;
 END;
@@ -137,20 +106,3 @@ CREATE TRIGGER trg_add_points
 AFTER UPDATE ON participations
 FOR EACH ROW
 EXECUTE FUNCTION update_points_on_completion();
-
--- Trigger 2: Silme Kısıtı (Constraint Trigger)
--- Senaryo: İçinde aktif etkinlik bulunan bir Rota silinemez!
-CREATE OR REPLACE FUNCTION prevent_route_deletion()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF EXISTS (SELECT 1 FROM events WHERE route_id = OLD.route_id AND status = 'active') THEN
-        RAISE EXCEPTION 'Bu rotada aktif bir etkinlik olduğu için silinemez!';
-    END IF;
-    RETURN OLD;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trg_check_route_delete
-BEFORE DELETE ON routes
-FOR EACH ROW
-EXECUTE FUNCTION prevent_route_deletion();
