@@ -131,6 +131,8 @@ CREATE TABLE participations (
   is_completed BOOLEAN DEFAULT false
 );
 
+-- 3. Foreign Key Tanımları
+
 -- ROZETLER
 CREATE TABLE badges (
     badge_id SERIAL PRIMARY KEY,
