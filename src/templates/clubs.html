@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="text-center mb-5">
+    <h1 class="display-5 fw-bold text-success">Topluluklar & Kulüpler 🌿</h1>
+    <p class="lead text-muted">İlgi alanına uygun bir kulübe katıl, yeni yürüyüş arkadaşları edin.</p>
+    <button class="btn btn-outline-primary"><i class="fas fa-plus-circle"></i> Yeni Kulüp Kur</button>
+</div>
+
+<div class="row">
+    {% for club in clubs %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow border-0 hover-shadow">
+            <img src="{{ club[3] if club[3] else 'https://source.unsplash.com/random/400x200/?nature,hiking&sig=' + loop.index|string }}" 
+                 class="card-img-top" alt="Kulüp Resmi" style="height: 200px; object-fit: cover;">
+            
+            <div class="card-body text-center">
+                <h4 class="card-title fw-bold">{{ club[1] }}</h4>
+                <p class="card-text text-muted">{{ club[2] }}</p>
+                
+                <div class="d-flex justify-content-center gap-3 my-3">
+                    <span class="badge bg-light text-dark border">
+                        <i class="fas fa-crown text-warning"></i> {{ club[4] }}
+                    </span>
+                    <span class="badge bg-light text-dark border">
+                        <i class="fas fa-users text-info"></i> {{ club[5] }} Üye
+                    </span>
+                </div>
+
+                <button class="btn btn-success w-100 rounded-pill">Katıl</button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+    .hover-shadow:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+        transition: all 0.3s ease;
+    }
+</style>
+{% endblock %}

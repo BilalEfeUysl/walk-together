@@ -105,8 +105,10 @@ CREATE TABLE route_reviews (
 CREATE TABLE stops (
   stop_id SERIAL PRIMARY KEY,
   route_id INTEGER REFERENCES routes(route_id) ON DELETE CASCADE,
-  stop_order INTEGER NOT NULL,
-  location_name VARCHAR NOT NULL
+  stop_order INTEGER NOT NULL, -- 1. durak, 2. durak...
+  location_name VARCHAR NOT NULL,
+  latitude DECIMAL(10, 8),  -- Örn: 41.008237
+  longitude DECIMAL(11, 8)  -- Örn: 28.978358
 );
 
 -- ETKİNLİKLER

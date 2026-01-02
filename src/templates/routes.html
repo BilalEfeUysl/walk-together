@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+
+<style>
+    #map { height: 600px; width: 100%; border-radius: 10px; }
+    .route-card { cursor: pointer; transition: transform 0.2s; }
+    .route-card:hover { transform: scale(1.02); background-color: #f0fdf4; }
+    
+    /* Yol tarifi metin kutusunu gizle (Sadece çizgiyi göster) */
+    .leaflet-routing-container {
+        display: none !important;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-4" style="height: 600px; overflow-y: auto;">
+        <h3 class="mb-3">📍 Rotalar</h3>
+        <p class="text-muted small">Detaylı yol çizimi için kutuya, yorumlar için butona tıklayın.</p>
+        
+        <div class="list-group">
+            {% for route in routes %}
+            
+            <div class="list-group-item list-group-item-action route-card p-3 position-relative">
+                
+                <div onclick="drawRoadRoute('{{ loop.index }}')">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1 fw-bold text-primary">{{ route[0] }}</h5>
+                        <small class="text-muted fw-bold">{{ route[2] }} km</small>
+                    </div>
+                    <p class="mb-1">Zorluk: <span class="badge bg-secondary">{{ route[1] }}</span></p>
+                    <small class="text-muted">⭐ {{ route[5] }} Puan | 👤 {{ route[3] }}</small>
+                </div>
+
+                <div class="mt-3 text-end border-top pt-2">
+                    <a href="/route/{{ loop.index }}" class="btn btn-sm btn-outline-success">
+                        <i class="fas fa-info-circle"></i> İncele & Yorumla
+                    </a>
+                </div>
+                
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div id="map"></div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+
+<script>
+    // 1. Haritayı Başlat (İstanbul Merkezli)
+    var map = L.map('map').setView([41.0082, 28.9784], 10);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Python'dan gelen rota verileri (JSON Formatında)
+    var routesData = {{ map_data | safe }}; 
+    var currentRoutingControl = null; // Şu an çizili olan yol
+    var currentMarkers = []; // Şu an ekrandaki pinler
+
+    // 2. Fonksiyon: Tıklanan rotayı sokaklara göre çiz
+    function drawRoadRoute(index) {
+        var coords = routesData[index];
+
+        if (!coords || coords.length === 0) {
+            alert("Bu rotanın koordinatları bulunamadı veya eksik!");
+            return;
+        }
+
+        // Önceki rotayı temizle
+        if (currentRoutingControl) {
+            map.removeControl(currentRoutingControl);
+        }
+        // Önceki pinleri temizle
+        currentMarkers.forEach(function(marker) {
+            map.removeLayer(marker);
+        });
+        currentMarkers = [];
+
+        // Koordinatları Leaflet formatına çevir
+        var waypoints = coords.map(function(point) {
+            return L.latLng(point[0], point[1]);
+        });
+
+        // --- SOKAK TAKİBİ YAPAN SİHİRLİ KOD (OSRM) ---
+        currentRoutingControl = L.Routing.control({
+            waypoints: waypoints,
+            routeWhileDragging: false, 
+            addWaypoints: false,       
+            draggableWaypoints: false, 
+            fitSelectedRoutes: true,   // Haritayı yola odakla
+            show: false,               // Yazılı tarifi gizle
+            lineOptions: {
+                styles: [{color: 'blue', opacity: 0.7, weight: 6}] // Mavi kalın çizgi
+            },
+            createMarker: function(i, wp, nWps) {
+                // Başlangıç, Bitiş ve Ara Durakları isimlendir
+                var text = (i === 0) ? "Başlangıç 🚩" : (i === nWps - 1) ? "Bitiş 🏁" : "Durak " + (i + 1);
+                var marker = L.marker(wp.latLng).bindPopup(text);
+                currentMarkers.push(marker);
+                return marker;
+            }
+        }).addTo(map);
+    }
+</script>
+{% endblock %}

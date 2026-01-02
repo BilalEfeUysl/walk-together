@@ -65,14 +65,39 @@ INSERT INTO route_reviews (route_id, user_id, comment, rating) VALUES
 (5, 4, 'Köpeğimle çok rahat ettik.', 5);
 
 -- 9. DURAKLAR
-INSERT INTO stops (route_id, stop_order, location_name) VALUES
-(1, 1, 'Giriş Kapısı'), (1, 2, 'Neşet Suyu'), (1, 3, 'Üçgen Ev'),
-(2, 1, 'Dalyan Parkı'), (2, 2, 'Şaşkınbakkal'), (2, 3, 'Erenköy'),
-(3, 1, 'Köy Meydanı'), (3, 2, 'Yürüyüş Parkuru Başı'),
-(4, 1, 'Ovacık Başlangıç'), (4, 2, 'Kirme Köyü'), (4, 3, 'Faralya'),
-(5, 1, 'Harbiye Girişi'), (5, 2, 'Teleferik Altı'),
-(7, 1, 'İskele'), (7, 2, 'Kayalıklar'), (7, 3, 'Yoğurtçu Parkı'),
-(10, 1, 'Saat Kulesi'), (10, 2, 'Lunapark Meydanı'), (10, 3, 'Aya Yorgi Yokuşu');
+INSERT INTO stops (route_id, stop_order, location_name, latitude, longitude) VALUES
+-- Belgrad Ormanı (Route 1)
+(1, 1, 'Giriş Kapısı', 41.1793, 28.9698),
+(1, 2, 'Neşet Suyu', 41.1856, 28.9567),
+(1, 3, 'Üçgen Ev', 41.1920, 28.9480),
+
+-- Caddebostan (Route 2)
+(2, 1, 'Dalyan Parkı', 40.9667, 29.0531),
+(2, 2, 'Şaşkınbakkal', 40.9632, 29.0685),
+(2, 3, 'Erenköy', 40.9605, 29.0801),
+
+-- Polonezköy (Route 3)
+(3, 1, 'Köy Meydanı', 41.1123, 29.2105),
+(3, 2, 'Yürüyüş Parkuru Başı', 41.1145, 29.2150),
+
+-- Likya Yolu (Route 4) - Fethiye civarı
+(4, 1, 'Ovacık Başlangıç', 36.5705, 29.1550),
+(4, 2, 'Kirme Köyü', 36.5450, 29.1320),
+(4, 3, 'Faralya', 36.5012, 29.1285),
+
+-- Maçka Parkı (Route 5)
+(5, 1, 'Harbiye Girişi', 41.0450, 28.9915),
+(5, 2, 'Teleferik Altı', 41.0425, 28.9940),
+
+-- Emirgan (Route 6 -> id 7)
+(7, 1, 'İskele', 41.1085, 29.0550),
+(7, 2, 'Kayalıklar', 41.1100, 29.0570),
+(7, 3, 'Yoğurtçu Parkı', 40.9850, 29.0300), -- (Not: Bu Moda tarafı ama örnek kalsın)
+
+-- Büyükada (Route 10)
+(10, 1, 'Saat Kulesi', 40.8755, 29.1275),
+(10, 2, 'Lunapark Meydanı', 40.8650, 29.1180),
+(10, 3, 'Aya Yorgi Yokuşu', 40.8600, 29.1150);
 
 -- 10. ETKİNLİKLER
 INSERT INTO events (organizer_id, route_id, category_id, event_date, status, description, max_participants, deadline) VALUES

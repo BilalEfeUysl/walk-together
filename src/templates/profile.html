@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card text-center p-3 mb-4">
+            <div class="d-flex justify-content-center">
+                <img src="{{ user[5] if user[5] else 'https://ui-avatars.com/api/?name=' + user[1] + '&background=random' }}" 
+                     class="rounded-circle border border-3 border-success" 
+                     width="150" height="150" alt="Profil Resmi" style="object-fit: cover;">
+            </div>
+            <h3 class="mt-3">{{ user[1] }}</h3> <p class="text-muted"><i class="fas fa-map-marker-alt"></i> {{ user[9] if user[9] else 'Konum Yok' }}</p>
+            
+            <div class="d-flex justify-content-center gap-2 mb-3">
+                <span class="badge bg-warning text-dark fs-6"><i class="fas fa-star"></i> {{ user[4] }} Puan</span>
+                <span class="badge bg-info fs-6">{{ user[3].upper() }}</span> </div>
+
+            <p class="card-text text-start fst-italic">"{{ user[6] if user[6] else 'Merhaba, ben Walk Together kullanıyorum!' }}"</p>
+            
+            <hr>
+            
+            <div class="text-start">
+                <h6>Hobiler:</h6>
+                {% for hobby in hobbies %}
+                    <span class="badge bg-secondary mb-1">{{ hobby[0] }}</span>
+                {% else %}
+                    <small class="text-muted">Hobi eklenmemiş.</small>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <i class="fas fa-user-friends"></i> Arkadaşlar ({{ friends|length }})
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for friend in friends %}
+                <li class="list-group-item d-flex align-items-center">
+                    <img src="{{ friend[2] if friend[2] else 'https://ui-avatars.com/api/?name=' + friend[1] }}" 
+                         class="rounded-circle me-2" width="30" height="30">
+                    <a href="/profile/{{ friend[0] }}" class="text-decoration-none text-dark">{{ friend[1] }}</a>
+                </li>
+                {% else %}
+                <li class="list-group-item text-muted">Henüz arkadaş yok.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark fw-bold">
+                <i class="fas fa-medal"></i> Rozet Koleksiyonu
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    {% for badge in badges %}
+                    <div class="col-md-3 mb-3">
+                        <div class="p-3 border rounded bg-light h-100" title="{{ badge[2] }}">
+                            <i class="fas fa-award fa-3x text-warning mb-2"></i>
+                            <h6 class="small fw-bold">{{ badge[0] }}</h6>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-12 text-muted">Henüz hiç rozet kazanılmamış. Biraz yürüyüş yap! 🏃‍♂️</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Kişisel Detaylar</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <strong>Doğum Tarihi:</strong> {{ user[8] if user[8] else '-' }}
+                    </div>
+                    <div class="col-6">
+                        <strong>Cinsiyet:</strong> 
+                        {% if user[7] == 'Male' %} Erkek 👨
+                        {% elif user[7] == 'Female' %} Kadın 👩
+                        {% else %} Belirtilmemiş
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

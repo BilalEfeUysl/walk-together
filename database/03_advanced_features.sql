@@ -25,7 +25,8 @@ SELECT
     RANK() OVER (ORDER BY total_points DESC) as siralama,
     username,
     role,
-    total_points
+    total_points,
+    user_id -- <--- YENİ EKLENEN KISIM (Link verebilmek için lazım)
 FROM users
 WHERE role != 'admin';
 
