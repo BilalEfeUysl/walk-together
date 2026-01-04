@@ -11,8 +11,8 @@
     {% for club in clubs %}
     <div class="col-md-4 mb-4">
         <div class="card h-100 shadow border-0 hover-shadow">
-            <img src="{{ club[3] if club[3] else 'https://source.unsplash.com/random/400x200/?nature,hiking&sig=' + loop.index|string }}" 
-                 class="card-img-top" alt="Kulüp Resmi" style="height: 200px; object-fit: cover;">
+            <img src="https://loremflickr.com/500/300/people,hiking,camping?lock={{ loop.index }}" 
+                class="card-img-top" alt="Kulüp Resmi" style="height: 200px; object-fit: cover;">
             
             <div class="card-body text-center">
                 <h4 class="card-title fw-bold">{{ club[1] }}</h4>
@@ -27,7 +27,11 @@
                     </span>
                 </div>
 
-                <button class="btn btn-success w-100 rounded-pill">Katıl</button>
+                <div class="card-footer bg-white border-top-0">
+    <a href="/club/{{ club[0] }}" class="btn btn-outline-success w-100 rounded-pill">
+        Kulübü İncele <i class="fas fa-arrow-right"></i>
+    </a>
+</div>
             </div>
         </div>
     </div>

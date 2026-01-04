@@ -17,3 +17,9 @@ walk-together/
 │   └── (Yakında eklenecek...)
 │
 └── README.md              # 📖 Proje Rehberi
+
+
+WINDOWS Başlatma
+
+- .\venv\Scripts\activate
+- python src/app.py 

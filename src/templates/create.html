@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+
+<style>
+    .leaflet-routing-container { display: none !important; }
+    
+    .loading-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+        background: white;
+        padding: 10px 20px;
+        border-radius: 50px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        display: none; 
+        align-items: center;
+        font-weight: bold;
+        color: var(--primary-color);
+        border: 2px solid var(--primary-color);
+    }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        
+        <div class="text-center mb-5">
+            <h1 class="fw-bold">Yeni İçerik Oluştur ✍️</h1>
+            <p class="text-muted">Kendi rotanı çiz veya bir etkinlik planla.</p>
+        </div>
+
+        <ul class="nav nav-pills nav-fill mb-4 bg-white p-2 rounded-pill shadow-sm" id="pills-tab" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active rounded-pill" id="pills-event-tab" data-bs-toggle="pill" data-bs-target="#pills-event" type="button">
+                    <i class="fas fa-calendar-plus me-2"></i>Etkinlik Oluştur
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link rounded-pill" id="pills-route-tab" data-bs-toggle="pill" data-bs-target="#pills-route" type="button">
+                    <i class="fas fa-map-marked-alt me-2"></i>Harita İle Rota Çiz
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="pills-tabContent">
+            
+            <div class="tab-pane fade show active" id="pills-event">
+                <div class="card border-0 shadow-lg">
+                    <div class="card-body p-5">
+                        <form method="POST" action="/create">
+                            <input type="hidden" name="form_type" value="event">
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Hangi Rotada?</label>
+                                <select class="form-select" name="route_id" required>
+                                    {% for r in routes %}
+                                    <option value="{{ r[0] }}">{{ r[1] }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Kategori</label>
+                                    <select class="form-select" name="category_id" required>
+                                        {% for c in categories %}
+                                        <option value="{{ c[0] }}">{{ c[1] }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Tarih</label>
+                                    <input type="datetime-local" class="form-control" name="event_date" required>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Açıklama</label>
+                                <textarea class="form-control" name="description" rows="2" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold">Etkinliği Yayınla</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="pills-route">
+                <div class="card border-0 shadow-lg">
+                    <div class="card-body p-4">
+                        <div class="alert alert-success border-0 bg-success bg-opacity-10">
+                            <i class="fas fa-magic me-2"></i> <strong>Otomatik Hesaplama:</strong> Haritaya tıklayınca rota çizilir. Yanlış tıklarsanız "Geri Al" diyebilirsiniz.
+                        </div>
+
+                        <form method="POST" action="/create" id="routeForm">
+                            <input type="hidden" name="form_type" value="route">
+                            <input type="hidden" name="stops_json" id="stops_json">
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Rota Adı</label>
+                                <input type="text" class="form-control" name="route_name" placeholder="Örn: Bebek Sahil Yürüyüşü" required>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Mesafe (km)</label>
+                                    <input type="number" step="0.1" class="form-control bg-light" name="distance" id="distanceInput" readonly required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Yürüme Süresi (dk)</label>
+                                    <input type="number" class="form-control bg-light" name="duration" id="durationInput" readonly required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Zorluk</label>
+                                    <input type="text" class="form-control bg-light fw-bold" name="difficulty" id="difficultyInput" readonly required>
+                                </div>
+                            </div>
+
+                            <div id="map" style="height: 400px; width: 100%; border-radius: 12px; border: 2px solid #eee;" class="mb-3 position-relative">
+                                <div id="loadingBadge" class="loading-badge">
+                                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                                    Hesaplanıyor...
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-danger flex-fill" onclick="clearMap()">
+                                    <i class="fas fa-trash-alt"></i> Temizle
+                                </button>
+                                
+                                <button type="button" class="btn btn-warning text-white flex-fill" onclick="removeLastStop()">
+                                    <i class="fas fa-backspace"></i> Geri Al
+                                </button>
+                                
+                                <button type="submit" class="btn btn-success flex-fill fw-bold">
+                                    <i class="fas fa-save"></i> Kaydet
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+
+<script>
+    var map = L.map('map').setView([41.0082, 28.9784], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: 'OpenStreetMap' }).addTo(map);
+
+    var stops = [];          
+    var routingControl = null;
+
+    routingControl = L.Routing.control({
+        waypoints: [],
+        routeWhileDragging: false,
+        addWaypoints: false,
+        draggableWaypoints: false,
+        show: false,
+        lineOptions: { styles: [{color: '#2d6a4f', opacity: 0.8, weight: 6}] },
+        createMarker: function(i, wp, nWps) {
+            // Marker etiketlerini dinamik yap
+            var label = (i === 0) ? "Başlangıç 🏁" : (i === nWps - 1) ? "Bitiş 🏁" : "Durak " + (i + 1);
+            return L.marker(wp.latLng).bindPopup(label);
+        }
+    }).addTo(map);
+
+    // Tıklama Olayı
+    map.on('click', function(e) {
+        var lat = e.latlng.lat;
+        var lng = e.latlng.lng;
+        stops.push({lat: lat, lng: lng});
+
+        updateRoute();
+    });
+
+    // Rota Hesaplandığında
+    routingControl.on('routesfound', function(e) {
+        var routes = e.routes;
+        var summary = routes[0].summary;
+
+        var totalDistanceKm = (summary.totalDistance / 1000).toFixed(1);
+        var walkingTimeMin = Math.round((totalDistanceKm / 5) * 60);
+
+        var difficulty = "Easy";
+        if (totalDistanceKm > 8) difficulty = "Hard";
+        else if (totalDistanceKm > 3) difficulty = "Medium";
+
+        document.getElementById('distanceInput').value = totalDistanceKm;
+        document.getElementById('durationInput').value = walkingTimeMin;
+        
+        var diffInput = document.getElementById('difficultyInput');
+        diffInput.value = difficulty;
+        diffInput.className = "form-control fw-bold text-white";
+        
+        if(difficulty === "Easy") diffInput.style.backgroundColor = "#2ecc71";
+        else if(difficulty === "Medium") diffInput.style.backgroundColor = "#f1c40f";
+        else diffInput.style.backgroundColor = "#e74c3c";
+
+        hideLoading();
+    });
+    
+    routingControl.on('routingerror', function() { hideLoading(); });
+
+    // --- YARDIMCI FONKSİYONLAR ---
+
+    // Rotayı ve Inputları Güncelle
+    function updateRoute() {
+        var waypoints = stops.map(s => L.latLng(s.lat, s.lng));
+        routingControl.setWaypoints(waypoints);
+        document.getElementById('stops_json').value = JSON.stringify(stops);
+
+        if (stops.length > 1) {
+            showLoading();
+        } else {
+            // Eğer tek nokta kaldıysa hesaplamaları temizle
+            resetInputs();
+        }
+    }
+
+    // YENİ: Son Durağı Sil (Geri Al)
+    function removeLastStop() {
+        if (stops.length === 0) return;
+
+        stops.pop(); // Son elemanı çıkar
+        updateRoute(); // Haritayı güncelle
+    }
+
+    function clearMap() {
+        stops = [];
+        updateRoute();
+        resetInputs();
+        hideLoading();
+    }
+
+    function resetInputs() {
+        document.getElementById('distanceInput').value = "";
+        document.getElementById('durationInput').value = "";
+        var diffInput = document.getElementById('difficultyInput');
+        diffInput.value = "";
+        diffInput.style.backgroundColor = "";
+        diffInput.className = "form-control bg-light";
+    }
+
+    function showLoading() {
+        document.getElementById('loadingBadge').style.display = 'flex';
+        setTimeout(hideLoading, 5000);
+    }
+
+    function hideLoading() {
+        document.getElementById('loadingBadge').style.display = 'none';
+    }
+    
+    document.getElementById('pills-route-tab').addEventListener('shown.bs.tab', function (e) {
+        map.invalidateSize();
+    });
+</script>
+{% endblock %}

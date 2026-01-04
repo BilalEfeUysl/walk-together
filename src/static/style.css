@@ -1,0 +1,139 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Poppins:wght@500;700&display=swap');
+
+:root {
+    --primary: #2d6a4f;     /* Koyu Orman Yeşili */
+    --secondary: #40916c;   /* Açık Yeşil */
+    --accent: #d8f3dc;      /* Çok Açık Yeşil (Arkaplanlar için) */
+    --dark: #1b4332;        /* Metin Rengi */
+    --light-bg: #f8f9fa;
+    --gradient-green: linear-gradient(135deg, #2d6a4f 0%, #40916c 100%);
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--light-bg);
+    color: var(--dark);
+    line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, .navbar-brand {
+    font-family: 'Poppins', sans-serif; /* Başlıklar daha yuvarlak */
+}
+
+/* NAVBAR */
+.navbar {
+    background: rgba(255, 255, 255, 0.98) !important;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.04);
+    padding: 0.8rem 0;
+}
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: var(--primary) !important;
+    letter-spacing: -0.5px;
+}
+.nav-link {
+    font-weight: 500;
+    color: #666 !important;
+    margin: 0 5px;
+    transition: all 0.2s;
+}
+.nav-link:hover { color: var(--primary) !important; transform: translateY(-1px); }
+
+/* HERO SECTION (BÜYÜK RESİM) */
+.hero-header {
+    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), 
+                url('https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+    background-size: cover;
+    background-position: center;
+    border-radius: 24px;
+    color: white;
+    padding: 100px 40px;
+    margin-bottom: 50px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.hero-header h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+/* KART TASARIMLARI */
+.card {
+    border: none;
+    border-radius: 16px;
+    background: white;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+}
+.card-img-top {
+    height: 220px;
+    object-fit: cover;
+}
+
+/* BUTONLAR */
+.btn-primary {
+    background: var(--primary);
+    border: none;
+    padding: 12px 30px;
+    border-radius: 12px;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(45, 106, 79, 0.3);
+}
+.btn-primary:hover {
+    background: #1b4332;
+    transform: translateY(-2px);
+}
+
+/* İSTATİSTİK KUTUSU */
+.stats-card {
+    background: var(--gradient-green);
+    color: white;
+    border-radius: 20px;
+    padding: 30px;
+    position: relative;
+    overflow: hidden;
+}
+/* Arka plana süs olsun diye şeffaf daire */
+.stats-card::after {
+    content: '';
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    width: 100px;
+    height: 100px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+}
+
+/* LİDERLİK LİSTESİ */
+.leader-item {
+    transition: background 0.2s;
+    border-radius: 10px;
+}
+.leader-item:hover {
+    background-color: var(--accent);
+}
+.rank-badge {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #eee;
+    font-weight: bold;
+    font-size: 0.8rem;
+    color: #555;
+}
+.rank-1 { background: #ffd700; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+.rank-2 { background: #c0c0c0; color: #fff; }
+.rank-3 { background: #cd7f32; color: #fff; }

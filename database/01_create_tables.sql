@@ -160,3 +160,66 @@ CREATE TABLE route_badges (
     earned_at TIMESTAMP DEFAULT NOW(),
     UNIQUE(route_id, badge_id)
 );
+
+-- users tablosuna email sütunu ekler
+ALTER TABLE users 
+ADD COLUMN email VARCHAR(150) UNIQUE;
+
+-- 1. Arkadaşlık Tablosu (Eğer yoksa)
+CREATE TABLE IF NOT EXISTS friendships (
+    friendship_id SERIAL PRIMARY KEY,
+    requester_id INT NOT NULL REFERENCES users(user_id),
+    addressee_id INT NOT NULL REFERENCES users(user_id),
+    status VARCHAR(20) CHECK (status IN ('pending', 'accepted', 'rejected')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(requester_id, addressee_id)
+);
+
+-- 2. Kulüp Duyuruları Tablosu (Kulüp içi mesajlaşma)
+CREATE TABLE IF NOT EXISTS club_announcements (
+    announcement_id SERIAL PRIMARY KEY,
+    club_id INT NOT NULL REFERENCES clubs(club_id),
+    sender_id INT NOT NULL REFERENCES users(user_id),
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 1. USERS tablosuna eksik sütunları güvenli şekilde ekle
+-- (Eğer varsa hata vermez, yoksa ekler)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='age') THEN
+        ALTER TABLE users ADD COLUMN age INT;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='bio') THEN
+        ALTER TABLE users ADD COLUMN bio TEXT;
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='email') THEN
+        ALTER TABLE users ADD COLUMN email VARCHAR(150) UNIQUE;
+    END IF;
+END $$;
+
+-- 2. HOBİLER ANA TABLOSU (Seçeneklerin durduğu yer)
+CREATE TABLE IF NOT EXISTS hobbies (
+    hobby_id SERIAL PRIMARY KEY,
+    hobby_name VARCHAR(50) NOT NULL UNIQUE
+);
+
+-- 3. Varsayılan Hobileri Ekle
+INSERT INTO hobbies (hobby_name) VALUES 
+('Doğa Yürüyüşü'), ('Kamp'), ('Fotoğrafçılık'), ('Bisiklet'), 
+('Koşu'), ('Yüzme'), ('Yoga'), ('Tarih'), ('Müzik'), ('Resim')
+ON CONFLICT DO NOTHING;
+
+-- 4. KULLANICI HOBİLERİ (İlişki Tablosu)
+-- Eski hatalı tabloyu (varsa) silip doğrusunu oluşturuyoruz
+DROP TABLE IF EXISTS user_hobbies;
+
+CREATE TABLE user_hobbies (
+    user_hobby_id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+    hobby_id INTEGER REFERENCES hobbies(hobby_id) ON DELETE CASCADE,
+    UNIQUE(user_id, hobby_id) -- Aynı hobiyi iki kere ekleyemesin
+);

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold"><i class="fas fa-bell text-warning"></i> Bildirimlerim</h2>
+            <button class="btn btn-sm btn-outline-secondary" disabled>Hepsi Okundu</button>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="list-group list-group-flush">
+                {% for notif in notifications %}
+                <div class="list-group-item p-4 d-flex align-items-start">
+                    <div class="me-3 mt-1">
+                        {% if 'rozet' in notif[0].lower() %}
+                            <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="fas fa-medal"></i>
+                            </div>
+                        {% elif 'arkadaş' in notif[0].lower() %}
+                            <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                        {% else %}
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="fas fa-info"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex-grow-1">
+                        <p class="mb-1 text-dark">{{ notif[0] }}</p>
+                        <small class="text-muted"><i class="far fa-clock"></i> {{ notif[1].strftime('%d.%m.%Y %H:%M') }}</small>
+                    </div>
+                    
+                    {% if not notif[2] %}
+                        <span class="badge bg-primary rounded-pill">Yeni</span>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="p-5 text-center text-muted">
+                    <i class="far fa-bell-slash fa-3x mb-3"></i>
+                    <p>Henüz hiç bildiriminiz yok.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

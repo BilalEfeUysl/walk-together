@@ -1,26 +1,57 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-8">
-        <div class="p-5 mb-4 bg-white rounded-3">
-            <h1 class="display-5 fw-bold text-success">Doğaya Adım At! 🌲</h1>
-            <p class="col-md-8 fs-4">Yeni yürüyüş rotaları keşfet, etkinliklere katıl ve rozetleri topla. Sağlıklı yaşam için yürümeye başla.</p>
-            <a class="btn btn-primary btn-lg" href="/routes" role="button">Rotaları Keşfet</a>
-        </div>
 
-        <h3 class="mb-3"><i class="fas fa-fire text-danger"></i> Popüler Rotalar</h3>
-        <div class="row">
+<div class="hero-header d-flex flex-column justify-content-center align-items-center">
+    <h1 class="display-4">Doğaya Adım At 🌲</h1>
+    <p class="lead fs-4 opacity-75 mb-4 col-lg-8">Şehrin gürültüsünden uzaklaş. Yeni rotalar keşfet, topluluklara katıl ve harekete geç.</p>
+    <div class="d-flex gap-3">
+        <a href="/routes" class="btn btn-primary btn-lg">
+            <i class="fas fa-map-marked-alt me-2"></i>Rotaları Keşfet
+        </a>
+        <a href="/clubs" class="btn btn-light btn-lg text-dark fw-bold">
+            <i class="fas fa-users me-2"></i>Kulüpler
+        </a>
+    </div>
+</div>
+
+<div class="row g-5">
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <h3 class="fw-bold mb-1">Popüler Rotalar 🔥</h3>
+                <p class="text-muted mb-0">Bu hafta en çok yürüyüş yapılan parkurlar.</p>
+            </div>
+            <a href="/routes" class="text-decoration-none fw-bold" style="color: var(--primary);">Tümünü Gör <i class="fas fa-arrow-right"></i></a>
+        </div>
+        
+        <div class="row g-4">
             {% for route in popular_routes %}
-            <div class="col-md-6 mb-3">
+            <div class="col-md-6">
                 <div class="card h-100">
+                    <div class="position-relative">
+                        <img src="https://loremflickr.com/600/400/forest,path?lock={{ loop.index }}" class="card-img-top" alt="Rota">
+                        <span class="position-absolute top-0 end-0 m-3 badge bg-white text-dark shadow-sm">
+                            ⭐ {{ route[5] if route[5] else 'Yeni' }}
+                        </span>
+                    </div>
+                    
                     <div class="card-body">
-                        <h5 class="card-title">{{ route[0] }}</h5> <h6 class="card-subtitle mb-2 text-muted">{{ route[3] }} km - {{ route[1] }}</h6>
-                        <p class="card-text">
-                            <span class="badge bg-warning text-dark"><i class="fas fa-star"></i> {{ route[5] }} Puan</span>
-                            <span class="badge bg-info"><i class="fas fa-users"></i> {{ route[4] }} Etkinlik</span>
-                        </p>
-                        <a href="#" class="card-link">Detayları Gör</a>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="badge bg-light text-dark border">{{ route[1] }}</span>
+                            <small class="text-muted fw-bold"><i class="fas fa-ruler-horizontal text-primary"></i> {{ route[2] }} km</small>
+                        </div>
+                        
+                        <h5 class="card-title fw-bold mb-3 text-truncate">{{ route[0] }}</h5>
+                        
+                        <div class="d-flex align-items-center justify-content-between">
+                            <small class="text-muted">
+                                <i class="fas fa-user-circle"></i> {{ route[3] }}
+                            </small>
+                            <a href="/route/{{ route[7] }}" class="btn btn-sm btn-outline-dark rounded-pill px-3">
+                                İncele
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -28,38 +59,57 @@
         </div>
     </div>
 
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header bg-warning text-dark fw-bold">
-                <i class="fas fa-trophy"></i> Liderlik Tablosu (Top 5)
-            </div>
-            <ul class="list-group list-group-flush">
-                {% for leader in leaders %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <span>
-                        <span class="fw-bold">#{{ leader[0] }}</span> 
+    <div class="col-lg-4">
         
-                        <a href="/profile/{{ leader[4] }}" class="text-decoration-none text-dark fw-bold">
+        <div class="stats-card shadow-lg mb-5">
+            <h2 class="display-5 fw-bold mb-0">{{ stats.users }}</h2>
+            <p class="opacity-75 mb-4">Aktif Doğa Sever</p>
+            
+            <div class="d-flex justify-content-between border-top border-white border-opacity-25 pt-3">
+                <div class="text-center">
+                    <h4 class="fw-bold mb-0">{{ stats.routes }}</h4>
+                    <small class="opacity-75">Rota</small>
+                </div>
+                <div class="text-center">
+                    <h4 class="fw-bold mb-0">{{ stats.events }}</h4>
+                    <small class="opacity-75">Etkinlik</small>
+                </div>
+                <div class="text-center">
+                    <h4 class="fw-bold mb-0">12</h4> <small class="opacity-75">Kulüp</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-3 border-0 shadow-sm" style="background: #fff;">
+            <div class="d-flex justify-content-between align-items-center mb-3 px-2">
+                <h5 class="fw-bold mb-0">🏆 Lider Tablosu</h5>
+                <a href="/leaderboard" class="small text-muted text-decoration-none">Tümü</a>
+            </div>
+            
+            <div class="d-flex flex-column gap-2">
+                {% for leader in leaders %}
+                <div class="leader-item d-flex align-items-center p-2">
+                    <div class="rank-badge rank-{{ loop.index }} me-3">
+                        {{ loop.index }}
+                    </div>
+                    
+                    <img src="https://ui-avatars.com/api/?name={{ leader[1] }}&background=random&rounded=true" 
+                         class="rounded-circle me-3" width="40">
+                    
+                    <div class="flex-grow-1">
+                        <a href="/profile/{{ leader[4] }}" class="text-dark text-decoration-none fw-bold d-block lh-1">
                             {{ leader[1] }}
                         </a>
-
-                    </span>
-                    <span class="badge bg-primary rounded-pill">{{ leader[3] }} P</span>
-                </li>
+                        <small class="text-muted" style="font-size: 0.75rem;">{{ leader[2] }}</small>
+                    </div>
+                    
+                    <span class="fw-bold text-success">{{ leader[3] }}P</span>
+                </div>
                 {% endfor %}
-            </ul>
-        </div>
-        
-        <div class="card mt-4">
-            <div class="card-header bg-info text-white">
-                <i class="fas fa-chart-line"></i> İstatistikler
-            </div>
-            <div class="card-body">
-                <p>Toplam Kullanıcı: <strong>{{ stats.users }}</strong></p>
-                <p>Toplam Rota: <strong>{{ stats.routes }}</strong></p>
-                <p>Toplam Etkinlik: <strong>{{ stats.events }}</strong></p>
             </div>
         </div>
+
     </div>
 </div>
+
 {% endblock %}

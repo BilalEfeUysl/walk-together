@@ -107,3 +107,25 @@ CREATE TRIGGER trg_add_points
 AFTER UPDATE ON participations
 FOR EACH ROW
 EXECUTE FUNCTION update_points_on_completion();
+
+
+-- ==========================================
+-- VIEW GÜNCELLEME: view_popular_routes
+-- (En sona r.route_id eklendi)
+-- ==========================================
+CREATE OR REPLACE VIEW view_popular_routes AS
+SELECT 
+    r.route_name,       -- index 0
+    r.difficulty_level, -- index 1
+    r.distance_km,      -- index 2
+    u.username AS creator_name, -- index 3
+    COUNT(DISTINCT e.event_id) AS event_count, -- index 4
+    ROUND(AVG(rr.rating), 1) AS average_rating, -- index 5
+    COUNT(DISTINCT rr.review_id) AS review_count, -- index 6
+    r.route_id          -- index 7 (YENİ EKLENDİ)
+FROM routes r
+JOIN users u ON r.creator_id = u.user_id
+LEFT JOIN events e ON r.route_id = e.route_id
+LEFT JOIN route_reviews rr ON r.route_id = rr.route_id
+GROUP BY r.route_id, r.route_name, r.difficulty_level, r.distance_km, u.username
+ORDER BY event_count DESC, average_rating DESC;

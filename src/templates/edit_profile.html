@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-lg">
+            <div class="card-header bg-white py-3">
+                <h4 class="mb-0 fw-bold"><i class="fas fa-user-edit text-primary"></i> Profili Düzenle</h4>
+            </div>
+            <div class="card-body p-4">
+                
+                <form method="POST" action="/edit_profile" enctype="multipart/form-data">
+                    
+                    <div class="text-center mb-4">
+                        <img src="{{ user[7] }}" class="rounded-circle shadow-sm mb-3" width="120" height="120" style="object-fit: cover; border: 4px solid #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                        
+                        <div>
+                            <label class="btn btn-sm btn-outline-primary rounded-pill position-relative">
+                                <i class="fas fa-camera"></i> Fotoğrafı Değiştir
+                                <input type="file" name="profile_pic" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" style="cursor: pointer;"> 
+                            </label>
+                        </div>
+                        <small class="text-muted d-block mt-2">Dosyayı seçtikten sonra aşağıdan "Kaydet"e basın.</small>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Kullanıcı Adı</label>
+                            <input type="text" class="form-control" value="{{ user[1] }}" disabled>
+                            <small class="text-muted">Kullanıcı adı değiştirilemez.</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Yaş</label>
+                            <input type="number" name="age" class="form-control" value="{{ user[5] }}">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Biyografi</label>
+                        <textarea name="bio" class="form-control" rows="3">{{ user[6] }}</textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold d-block">İlgi Alanların</label>
+                        <div class="d-flex flex-wrap gap-3">
+                            {% for hobby in hobbies %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="hobbies" value="{{ hobby[0] }}" id="eh_{{ hobby[0] }}"
+                                    {% if hobby[0] in my_hobby_ids %}checked{% endif %}>
+                                <label class="form-check-label" for="eh_{{ hobby[0] }}">
+                                    {{ hobby[1] }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="/profile/{{ user[0] }}" class="btn btn-secondary rounded-pill">İptal</a>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Değişiklikleri Kaydet</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
