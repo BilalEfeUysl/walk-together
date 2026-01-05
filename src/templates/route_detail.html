@@ -1,10 +1,20 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+
+<style>
+    /* Yol tarifi metin kutusunu gizle (Sadece çizgiyi göster) */
+    .leaflet-routing-container { display: none !important; }
+</style>
+
 <div class="card mb-4 border-0 shadow-sm">
     <div class="card-body p-5 bg-light rounded-3">
         <div class="d-flex justify-content-between align-items-center">
-            <h1 class="display-5 fw-bold">{{ route[2] }}</h1> <span class="badge bg-primary fs-5">{{ route[4] }}</span> </div>
+            <h1 class="display-5 fw-bold">{{ route[2] }}</h1> 
+            <span class="badge bg-primary fs-5">{{ route[4] }}</span> 
+        </div>
         
         <p class="lead text-muted">
             <i class="fas fa-user-edit"></i> Oluşturan: 
@@ -16,6 +26,12 @@
             <div><i class="fas fa-hourglass-half fa-2x text-warning"></i> <br> <strong>{{ route[5] }} dk</strong></div>
             <div><i class="fas fa-calendar-alt fa-2x text-info"></i> <br> <strong>{{ route[6].strftime('%Y') }}</strong></div>
         </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-0">
+        <div id="detailMap" style="height: 400px; width: 100%; border-radius: 8px;"></div>
     </div>
 </div>
 
@@ -79,4 +95,53 @@
         {% endfor %}
     </div>
 </div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+
+<script>
+    // Backend'den durakları çekiyoruz (Enlem, Boylam)
+    // stops tablosunda: 4. index latitude, 5. index longitude
+    var rawStops = [
+        {% for stop in stops %}
+            [{{ stop[4] }}, {{ stop[5] }}], 
+        {% endfor %}
+    ];
+
+    if (rawStops.length > 0) {
+        // Haritayı başlat
+        var map = L.map('detailMap').setView(rawStops[0], 13);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: 'OpenStreetMap'
+        }).addTo(map);
+
+        // Koordinatları L.latLng formatına çevir
+        var waypoints = rawStops.map(function(coords) {
+            return L.latLng(coords[0], coords[1]);
+        });
+
+        // OSRM MOTORU: Sokakları takip eden yolu çiz
+        L.Routing.control({
+            waypoints: waypoints,
+            routeWhileDragging: false, 
+            addWaypoints: false,       // Kullanıcı değiştiremesin
+            draggableWaypoints: false, 
+            fitSelectedRoutes: true,   // Haritayı yola oturt
+            show: false,               // Metin kutusunu gizle
+            lineOptions: {
+                styles: [{color: '#d63031', opacity: 0.8, weight: 6}] // Kırmızı Kalın Çizgi
+            },
+            createMarker: function(i, wp, nWps) {
+                // Pinleri isimlendir
+                var label = "";
+                if (i === 0) label = "Başlangıç 🏁";
+                else if (i === nWps - 1) label = "Bitiş 🏁";
+                else label = "Durak " + (i + 1);
+                
+                return L.marker(wp.latLng).bindPopup(label);
+            }
+        }).addTo(map);
+    }
+</script>
 {% endblock %}

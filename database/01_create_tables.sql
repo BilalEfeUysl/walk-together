@@ -223,3 +223,23 @@ CREATE TABLE user_hobbies (
     hobby_id INTEGER REFERENCES hobbies(hobby_id) ON DELETE CASCADE,
     UNIQUE(user_id, hobby_id) -- Aynı hobiyi iki kere ekleyemesin
 );
+
+
+-- 1. Önce varsa mükerrer kayıtları temizle (Eskileri siler, en sonuncuyu tutar)
+DELETE FROM participations a USING participations b
+WHERE a.participation_id < b.participation_id
+AND a.user_id = b.user_id
+AND a.event_id = b.event_id;
+
+-- 2. Artık Unique (Benzersizlik) kuralını ekle
+ALTER TABLE participations 
+ADD CONSTRAINT unique_user_event UNIQUE (user_id, event_id);
+
+-- Çift yönlü (A->B ve B->A) olan kayıtların fazlalıklarını sil
+DELETE FROM friendships f1
+WHERE EXISTS (
+    SELECT 1 FROM friendships f2
+    WHERE f2.requester_id = f1.addressee_id
+    AND f2.addressee_id = f1.requester_id
+    AND f1.friendship_id > f2.friendship_id -- ID'si büyük olanı (sonradan ekleneni) sil
+);

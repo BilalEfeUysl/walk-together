@@ -129,3 +129,59 @@ LEFT JOIN events e ON r.route_id = e.route_id
 LEFT JOIN route_reviews rr ON r.route_id = rr.route_id
 GROUP BY r.route_id, r.route_name, r.difficulty_level, r.distance_km, u.username
 ORDER BY event_count DESC, average_rating DESC;
+
+
+-- 1. Önce eski bozuk görünümleri temizle
+DROP VIEW IF EXISTS view_popular_routes;
+DROP VIEW IF EXISTS view_leaderboard;
+
+-- 2. Popüler Rotalar Görünümü (app.py burayı okuyor)
+CREATE VIEW view_popular_routes AS
+SELECT 
+    r.route_id, 
+    r.route_name, 
+    r.distance_km, 
+    r.difficulty_level, 
+    r.estimated_duration,
+    u.username,    -- Yaratan kişinin adı
+    u.profile_picture_url, -- Yaratanın resmi
+    COUNT(rr.review_id) as review_count, -- Kaç yorum var
+    COALESCE(AVG(rr.rating), 0) as avg_rating -- Ortalama puan (Yoksa 0)
+FROM routes r
+JOIN users u ON r.creator_id = u.user_id
+LEFT JOIN route_reviews rr ON r.route_id = rr.route_id
+GROUP BY r.route_id, u.username, u.profile_picture_url;
+
+-- 3. Liderlik Tablosu Görünümü (Anasayfa için)
+CREATE VIEW view_leaderboard AS
+SELECT 
+    DENSE_RANK() OVER (ORDER BY u.total_points DESC) as rank,
+    u.username,
+    u.role,
+    u.total_points,
+    u.user_id,
+    u.profile_picture_url
+FROM users u
+WHERE u.role != 'admin' -- Adminleri sıralamaya katma
+ORDER BY u.total_points DESC;
+
+-- Eski hatalı görünümü kaldır
+DROP VIEW IF EXISTS view_popular_routes;
+
+-- Yeni ve doğru sütunlu görünümü oluştur
+CREATE OR REPLACE VIEW view_popular_routes AS
+SELECT 
+    r.route_name,       -- [0] Rota Adı
+    r.difficulty_level, -- [1] Zorluk
+    r.distance_km,      -- [2] Mesafe
+    u.username AS creator_name, -- [3] Oluşturan
+    COUNT(DISTINCT e.event_id) AS event_count, -- [4] Etkinlik Sayısı
+    ROUND(AVG(COALESCE(rr.rating, 0)), 1) AS average_rating, -- [5] Puan
+    COUNT(DISTINCT rr.review_id) AS review_count, -- [6] Yorum Sayısı
+    r.route_id          -- [7] ID (İŞTE BU EKSİKTİ!)
+FROM routes r
+JOIN users u ON r.creator_id = u.user_id
+LEFT JOIN events e ON r.route_id = e.route_id
+LEFT JOIN route_reviews rr ON r.route_id = rr.route_id
+GROUP BY r.route_id, r.route_name, r.difficulty_level, r.distance_km, u.username
+ORDER BY event_count DESC, average_rating DESC;

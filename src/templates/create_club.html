@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-lg border-0">
+            <div class="card-body p-5">
+                <h3 class="fw-bold text-center mb-4">Yeni Kulüp Kur 🚩</h3>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="fw-bold">Kulüp Adı</label>
+                        <input type="text" name="club_name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold">Açıklama</label>
+                        <textarea name="description" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="fw-bold">Kapak Resmi URL (Opsiyonel)</label>
+                        <input type="text" name="image_url" class="form-control" placeholder="https://...">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill">Kulübü Oluştur</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

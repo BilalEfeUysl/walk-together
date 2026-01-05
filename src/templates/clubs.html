@@ -4,7 +4,7 @@
 <div class="text-center mb-5">
     <h1 class="display-5 fw-bold text-success">Topluluklar & Kulüpler 🌿</h1>
     <p class="lead text-muted">İlgi alanına uygun bir kulübe katıl, yeni yürüyüş arkadaşları edin.</p>
-    <button class="btn btn-outline-primary"><i class="fas fa-plus-circle"></i> Yeni Kulüp Kur</button>
+    <a href="/create_club" class="btn btn-outline-primary"><i class="fas fa-plus-circle"></i> Yeni Kulüp Kur</a>
 </div>
 
 <div class="row">
@@ -28,10 +28,10 @@
                 </div>
 
                 <div class="card-footer bg-white border-top-0">
-    <a href="/club/{{ club[0] }}" class="btn btn-outline-success w-100 rounded-pill">
-        Kulübü İncele <i class="fas fa-arrow-right"></i>
-    </a>
-</div>
+                    <a href="/club/{{ club[0] }}" class="btn btn-outline-success w-100 rounded-pill">
+                        Kulübü İncele <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
             </div>
         </div>
     </div>

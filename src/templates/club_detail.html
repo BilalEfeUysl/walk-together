@@ -4,10 +4,20 @@
 <div class="row">
     <div class="col-md-4">
         <div class="card border-0 shadow-sm mb-4">
-            <img src="{{ club[3] or 'https://loremflickr.com/400/200/team' }}" class="card-img-top" style="height: 200px; object-fit: cover;">
+            <img src="{{ club[4] or 'https://loremflickr.com/400/200/team' }}" class="card-img-top" style="height: 200px; object-fit: cover;">
+            
             <div class="card-body text-center">
                 <h3 class="fw-bold">{{ club[1] }}</h3>
                 <p class="text-muted">{{ club[2] }}</p>
+                
+                {% if session.get('user_id') == club[3] %}
+                <div class="mb-3">
+                    <a href="/edit_club/{{ club[0] }}" class="btn btn-outline-warning w-100 fw-bold">
+                        <i class="fas fa-edit"></i> Kulüp Bilgilerini Düzenle
+                    </a>
+                </div>
+                {% endif %}
+
                 <div class="d-grid gap-2">
                     {% if is_member %}
                         <button class="btn btn-success disabled"><i class="fas fa-check"></i> Üyesiniz</button>
@@ -16,6 +26,7 @@
                     {% endif %}
                 </div>
             </div>
+
             <div class="card-footer bg-white">
                 <h6 class="fw-bold mb-3">Üyeler</h6>
                 <div class="d-flex flex-wrap gap-2 justify-content-center">
@@ -35,32 +46,28 @@
                 <h5 class="mb-0 fw-bold"><i class="fas fa-bullhorn text-warning"></i> Duyuru Duvarı</h5>
             </div>
             <div class="card-body">
-                {% if is_member %}
-                <form method="POST" class="mb-4">
-                    <input type="hidden" name="club_name" value="{{ club[1] }}">
-                    <div class="input-group">
-                        <input type="text" name="message" class="form-control" placeholder="Bir duyuru paylaş..." required>
-                        <button class="btn btn-primary" type="submit"><i class="fas fa-paper-plane"></i> Paylaş</button>
-                    </div>
-                </form>
-                {% else %}
-                <div class="alert alert-light text-center">Duyuru yazmak için kulübe katılmalısınız.</div>
+                
+                {% if session.get('user_id') == club[3] %}
+                    <form method="POST" class="mb-4">
+                        <input type="hidden" name="club_name" value="{{ club[1] }}">
+                        <div class="input-group">
+                            <input type="text" name="message" class="form-control" placeholder="Yönetici olarak bir duyuru paylaş..." required>
+                            <button class="btn btn-primary" type="submit"><i class="fas fa-paper-plane"></i> Paylaş</button>
+                        </div>
+                    </form>
                 {% endif %}
-
                 <div class="list-group list-group-flush">
                     {% for ann in announcements %}
                     <div class="list-group-item d-flex align-items-start px-0">
                         <img src="https://ui-avatars.com/api/?name={{ ann[2] }}&background=random" class="rounded-circle me-3" width="40">
                         <div>
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <h6 class="fw-bold mb-0 text-primary">{{ ann[2] }}</h6>
-                                <small class="text-muted" style="font-size: 0.7rem;">{{ ann[1].strftime('%d.%m %H:%M') }}</small>
+                                <h6 class="fw-bold mb-0 text-primary">{{ ann[2] }}</h6> <small class="text-muted" style="font-size: 0.7rem;">{{ ann[1].strftime('%d.%m %H:%M') }}</small>
                             </div>
-                            <p class="mb-0 text-dark">{{ ann[0] }}</p>
-                        </div>
+                            <p class="mb-0 text-dark">{{ ann[0] }}</p> </div>
                     </div>
                     {% else %}
-                    <p class="text-center text-muted py-4">Henüz bir duyuru yok. İlkini sen yap!</p>
+                    <p class="text-center text-muted py-4">Henüz bir duyuru yok.</p>
                     {% endfor %}
                 </div>
             </div>

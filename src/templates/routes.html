@@ -5,48 +5,56 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
 
 <style>
-    #map { height: 600px; width: 100%; border-radius: 10px; }
-    .route-card { cursor: pointer; transition: transform 0.2s; }
-    .route-card:hover { transform: scale(1.02); background-color: #f0fdf4; }
+    #map { height: 600px; width: 100%; border-radius: 10px; border: 2px solid #eee; }
+    
+    .route-card { cursor: pointer; transition: all 0.2s; border-left: 5px solid transparent; }
+    .route-card:hover { transform: translateX(5px); background-color: #f8f9fa; border-left: 5px solid var(--primary-color); }
     
     /* Yol tarifi metin kutusunu gizle (Sadece çizgiyi göster) */
-    .leaflet-routing-container {
-        display: none !important;
-    }
+    .leaflet-routing-container { display: none !important; }
 </style>
 
 <div class="row">
     <div class="col-md-4" style="height: 600px; overflow-y: auto;">
-        <h3 class="mb-3">📍 Rotalar</h3>
-        <p class="text-muted small">Detaylı yol çizimi için kutuya, yorumlar için butona tıklayın.</p>
+        <h3 class="mb-3 fw-bold"><i class="fas fa-map-signs text-success"></i> Rotalar</h3>
+        <p class="text-muted small mb-4">Haritada görmek için karta tıklayın. Detaylar için butonu kullanın.</p>
         
         <div class="list-group">
             {% for route in routes %}
-            
-            <div class="list-group-item list-group-item-action route-card p-3 position-relative">
+            <div class="list-group-item list-group-item-action route-card p-3 mb-2 shadow-sm border-0 rounded" 
+                 onclick="drawRoadRoute('{{ route[7] }}')"> <div class="d-flex w-100 justify-content-between align-items-center">
+                    <h5 class="mb-1 fw-bold text-dark">{{ route[0] }}</h5>
+                    <span class="badge bg-light text-dark border">{{ route[2] }} km</span>
+                </div>
                 
-                <div onclick="drawRoadRoute('{{ loop.index }}')">
-                    <div class="d-flex w-100 justify-content-between">
-                        <h5 class="mb-1 fw-bold text-primary">{{ route[0] }}</h5>
-                        <small class="text-muted fw-bold">{{ route[2] }} km</small>
-                    </div>
-                    <p class="mb-1">Zorluk: <span class="badge bg-secondary">{{ route[1] }}</span></p>
-                    <small class="text-muted">⭐ {{ route[5] }} Puan | 👤 {{ route[3] }}</small>
+                <div class="mb-2">
+                    <span class="badge 
+                        {% if route[1] == 'Easy' %}bg-success
+                        {% elif route[1] == 'Medium' %}bg-warning text-dark
+                        {% else %}bg-danger{% endif %}">
+                        {{ route[1] }}
+                    </span>
+                    <small class="text-muted ms-2"><i class="fas fa-user"></i> {{ route[3] }}</small>
                 </div>
 
-                <div class="mt-3 text-end border-top pt-2">
-                    <a href="/route/{{ loop.index }}" class="btn btn-sm btn-outline-success">
-                        <i class="fas fa-info-circle"></i> İncele & Yorumla
+                <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                    <small class="text-warning fw-bold">
+                        {% if route[5] > 0 %} ⭐ {{ route[5] }} ({{ route[6] }} Yorum) {% else %} Yeni Rota {% endif %}
+                    </small>
+                    <a href="/route/{{ route[7] }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                        Detay & Yorum <i class="fas fa-arrow-right ms-1"></i>
                     </a>
                 </div>
                 
             </div>
+            {% else %}
+            <div class="alert alert-warning">Henüz hiç rota eklenmemiş. İlk ekleyen sen ol!</div>
             {% endfor %}
         </div>
     </div>
 
     <div class="col-md-8">
-        <div id="map"></div>
+        <div id="map" class="shadow-sm"></div>
     </div>
 </div>
 
@@ -55,60 +63,74 @@
 
 <script>
     // 1. Haritayı Başlat (İstanbul Merkezli)
-    var map = L.map('map').setView([41.0082, 28.9784], 10);
+    var map = L.map('map').setView([41.0082, 28.9784], 11);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // Python'dan gelen rota verileri (JSON Formatında)
-    var routesData = {{ map_data | safe }}; 
+    // Python'dan gelen JSON verisini al (Güvenli şekilde)
+    var routesData = JSON.parse('{{ map_data | safe }}'); 
+    
     var currentRoutingControl = null; // Şu an çizili olan yol
-    var currentMarkers = []; // Şu an ekrandaki pinler
+    var currentMarkers = [];          // Şu an ekrandaki pinler
 
-    // 2. Fonksiyon: Tıklanan rotayı sokaklara göre çiz
-    function drawRoadRoute(index) {
-        var coords = routesData[index];
+    // 2. Fonksiyon: Tıklanan rotayı SOKAKLARA GÖRE çiz
+    function drawRoadRoute(routeId) {
+        var coords = routesData[routeId];
 
         if (!coords || coords.length === 0) {
-            alert("Bu rotanın koordinatları bulunamadı veya eksik!");
+            alert("Bu rotanın durak bilgisi bulunamadı!");
             return;
         }
 
-        // Önceki rotayı temizle
+        // --- TEMİZLİK ---
+        // Önceki rotayı haritadan sil
         if (currentRoutingControl) {
             map.removeControl(currentRoutingControl);
+            currentRoutingControl = null;
         }
-        // Önceki pinleri temizle
+        // Önceki pinleri sil
         currentMarkers.forEach(function(marker) {
             map.removeLayer(marker);
         });
         currentMarkers = [];
 
+        // --- HAZIRLIK ---
         // Koordinatları Leaflet formatına çevir
         var waypoints = coords.map(function(point) {
             return L.latLng(point[0], point[1]);
         });
 
-        // --- SOKAK TAKİBİ YAPAN SİHİRLİ KOD (OSRM) ---
-        currentRoutingControl = L.Routing.control({
-            waypoints: waypoints,
-            routeWhileDragging: false, 
-            addWaypoints: false,       
-            draggableWaypoints: false, 
-            fitSelectedRoutes: true,   // Haritayı yola odakla
-            show: false,               // Yazılı tarifi gizle
-            lineOptions: {
-                styles: [{color: 'blue', opacity: 0.7, weight: 6}] // Mavi kalın çizgi
-            },
-            createMarker: function(i, wp, nWps) {
-                // Başlangıç, Bitiş ve Ara Durakları isimlendir
-                var text = (i === 0) ? "Başlangıç 🚩" : (i === nWps - 1) ? "Bitiş 🏁" : "Durak " + (i + 1);
-                var marker = L.marker(wp.latLng).bindPopup(text);
-                currentMarkers.push(marker);
-                return marker;
-            }
-        }).addTo(map);
+        // --- ÇİZİM (OSRM Motoru) ---
+        // Bu motor, noktalar arasını kuş uçuşu değil, sokakları takip ederek birleştirir.
+        try {
+            currentRoutingControl = L.Routing.control({
+                waypoints: waypoints,
+                routeWhileDragging: false, 
+                addWaypoints: false,       
+                draggableWaypoints: false, 
+                fitSelectedRoutes: true,   // Haritayı yola odakla
+                show: false,               // Metin kutusunu gizle
+                lineOptions: {
+                    styles: [{color: '#0d6efd', opacity: 0.8, weight: 6}] // Kalın Mavi Çizgi
+                },
+                createMarker: function(i, wp, nWps) {
+                    // Marker ikonlarını özelleştir
+                    var label = "";
+                    if (i === 0) label = "Başlangıç 🏁";
+                    else if (i === nWps - 1) label = "Bitiş 🏁";
+                    else label = "Durak " + (i + 1);
+                    
+                    var marker = L.marker(wp.latLng).bindPopup(label);
+                    currentMarkers.push(marker);
+                    return marker;
+                }
+            }).addTo(map);
+        } catch (e) {
+            console.error("Rota çizim hatası:", e);
+            alert("Rota çizilirken bir hata oluştu.");
+        }
     }
 </script>
 {% endblock %}

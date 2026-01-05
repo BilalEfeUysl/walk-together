@@ -3,48 +3,69 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fw-bold"><i class="fas fa-bell text-warning"></i> Bildirimlerim</h2>
-            <button class="btn btn-sm btn-outline-secondary" disabled>Hepsi Okundu</button>
-        </div>
-
         <div class="card shadow-sm border-0">
-            <div class="list-group list-group-flush">
-                {% for notif in notifications %}
-                <div class="list-group-item p-4 d-flex align-items-start">
-                    <div class="me-3 mt-1">
-                        {% if 'rozet' in notif[0].lower() %}
-                            <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                <i class="fas fa-medal"></i>
+            
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h4 class="mb-0 fw-bold text-primary">
+                    <i class="fas fa-bell"></i> Bildirimler
+                </h4>
+                
+                {% if notifications %}
+                <a href="/delete_all_notifications" 
+                   class="btn btn-outline-danger btn-sm"
+                   onclick="return confirm('Tüm bildirimleri silmek istediğine emin misin?');">
+                    <i class="fas fa-trash-alt"></i> Tümünü Temizle
+                </a>
+                {% endif %}
+            </div>
+
+            <div class="card-body p-0">
+                {% if notifications %}
+                    <ul class="list-group list-group-flush">
+                        {% for notif in notifications %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center p-3 {% if not notif[2] %}bg-light{% endif %}">
+                            
+                            <div class="d-flex align-items-start">
+                                <div class="me-3 mt-1">
+                                    {% if 'arkadaş' in notif[0] %}
+                                        <i class="fas fa-user-plus text-success fa-lg"></i>
+                                    {% elif 'iptal' in notif[0] %}
+                                        <i class="fas fa-exclamation-circle text-danger fa-lg"></i>
+                                    {% else %}
+                                        <i class="fas fa-info-circle text-primary fa-lg"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <p class="mb-1 text-dark">{{ notif[0] }}</p>
+                                    <small class="text-muted">
+                                        <i class="far fa-clock"></i> {{ notif[1].strftime('%d.%m.%Y %H:%M') }}
+                                    </small>
+                                </div>
                             </div>
-                        {% elif 'arkadaş' in notif[0].lower() %}
-                            <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                <i class="fas fa-user-plus"></i>
+
+                            <div class="ms-3">
+                                <a href="/delete_notification/{{ notif[3] }}" 
+                                   class="btn btn-sm text-muted hover-danger" 
+                                   title="Bildirimi Sil">
+                                    <i class="fas fa-times"></i>
+                                </a>
                             </div>
-                        {% else %}
-                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                <i class="fas fa-info"></i>
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="flex-grow-1">
-                        <p class="mb-1 text-dark">{{ notif[0] }}</p>
-                        <small class="text-muted"><i class="far fa-clock"></i> {{ notif[1].strftime('%d.%m.%Y %H:%M') }}</small>
-                    </div>
-                    
-                    {% if not notif[2] %}
-                        <span class="badge bg-primary rounded-pill">Yeni</span>
-                    {% endif %}
-                </div>
+
+                        </li>
+                        {% endfor %}
+                    </ul>
                 {% else %}
-                <div class="p-5 text-center text-muted">
-                    <i class="far fa-bell-slash fa-3x mb-3"></i>
-                    <p>Henüz hiç bildiriminiz yok.</p>
-                </div>
-                {% endfor %}
+                    <div class="text-center py-5">
+                        <i class="far fa-bell-slash fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Hiç yeni bildirimin yok.</p>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .hover-danger:hover { color: #dc3545 !important; }
+</style>
 {% endblock %}

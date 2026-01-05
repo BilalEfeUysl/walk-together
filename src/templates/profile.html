@@ -24,8 +24,7 @@
                         <i class="fas fa-cog me-1"></i> Profili Düzenle
                     </a>
                 </div>
-            {% else %}
-                {% endif %}
+            {% endif %}
         </div>
 
         <div class="row">
@@ -65,6 +64,63 @@
                          {% endfor %}
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0 mt-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-map-marked-alt text-danger"></i> Oluşturulan Rotalar</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if created_routes %}
+                    <ul class="list-group list-group-flush">
+                        {% for route in created_routes %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center p-3">
+                            
+                            <div class="d-flex align-items-center">
+                                <div class="me-3 text-center">
+                                    {% if route[3] == 'Easy' %}
+                                        <i class="fas fa-hiking fa-2x text-success"></i>
+                                    {% elif route[3] == 'Medium' %}
+                                        <i class="fas fa-hiking fa-2x text-warning"></i>
+                                    {% else %}
+                                        <i class="fas fa-hiking fa-2x text-danger"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <a href="/route_detail/{{ route[0] }}" class="text-dark fw-bold text-decoration-none d-block">
+                                        {{ route[1] }}
+                                    </a>
+                                    <small class="text-muted">
+                                        {{ route[2] }} km • {{ route[3] }}
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div>
+                                <a href="/route_detail/{{ route[0] }}" class="btn btn-outline-primary btn-sm" title="İncele">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+
+                                {% if session.get('user_id') == user[0] %}
+                                <a href="/delete_route/{{ route[0] }}" 
+                                   class="btn btn-outline-danger btn-sm ms-1"
+                                   onclick="return confirm('Bu rotayı silmek istediğine emin misin? Bağlı etkinlikler de silinebilir!');"
+                                   title="Sil">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                            
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="fas fa-route fa-2x mb-2 opacity-50"></i>
+                        <p>Henüz oluşturulan bir rota yok.</p>
+                    </div>
+                {% endif %}
             </div>
         </div>
 
