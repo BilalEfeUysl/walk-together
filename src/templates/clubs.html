@@ -3,8 +3,21 @@
 {% block content %}
 <div class="text-center mb-5">
     <h1 class="display-5 fw-bold text-success">Topluluklar & Kulüpler 🌿</h1>
-    <p class="lead text-muted">İlgi alanına uygun bir kulübe katıl, yeni yürüyüş arkadaşları edin.</p>
-    <a href="/create_club" class="btn btn-outline-primary"><i class="fas fa-plus-circle"></i> Yeni Kulüp Kur</a>
+    <p class="lead text-muted mb-4">İlgi alanına uygun bir kulübe katıl, yeni yürüyüş arkadaşları edin.</p>
+    
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-6">
+            <form action="/clubs" method="GET" class="d-flex shadow-sm rounded-pill p-1 bg-white border">
+                <input type="text" name="q" class="form-control border-0 rounded-pill shadow-none ps-4" 
+                       placeholder="Kulüp adı veya açıklama ara..." value="{{ search_query }}">
+                <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">Ara</button>
+            </form>
+        </div>
+    </div>
+
+    <a href="/create_club" class="btn btn-outline-primary rounded-pill px-4">
+        <i class="fas fa-plus-circle"></i> Yeni Kulüp Kur
+    </a>
 </div>
 
 <div class="row">
@@ -14,11 +27,11 @@
             <img src="https://loremflickr.com/500/300/people,hiking,camping?lock={{ loop.index }}" 
                 class="card-img-top" alt="Kulüp Resmi" style="height: 200px; object-fit: cover;">
             
-            <div class="card-body text-center">
-                <h4 class="card-title fw-bold">{{ club[1] }}</h4>
-                <p class="card-text text-muted">{{ club[2] }}</p>
+            <div class="card-body text-center d-flex flex-column">
+                <h4 class="card-title fw-bold text-dark">{{ club[1] }}</h4>
+                <p class="card-text text-muted small flex-grow-1">{{ club[2] }}</p>
                 
-                <div class="d-flex justify-content-center gap-3 my-3">
+                <div class="d-flex justify-content-center gap-2 my-3">
                     <span class="badge bg-light text-dark border">
                         <i class="fas fa-crown text-warning"></i> {{ club[4] }}
                     </span>
@@ -27,12 +40,20 @@
                     </span>
                 </div>
 
-                <div class="card-footer bg-white border-top-0">
+                <div class="card-footer bg-white border-top-0 p-0 pb-3">
                     <a href="/club/{{ club[0] }}" class="btn btn-outline-success w-100 rounded-pill">
-                        Kulübü İncele <i class="fas fa-arrow-right"></i>
+                        Kulübü İncele <i class="fas fa-arrow-right ms-1"></i>
                     </a>
                 </div>
             </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-light text-center py-5 border">
+            <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
+            <p class="lead text-muted">Aradığınız kriterde kulüp bulunamadı.</p>
+            <a href="/clubs" class="btn btn-sm btn-outline-secondary">Tüm Kulüpleri Göster</a>
         </div>
     </div>
     {% endfor %}

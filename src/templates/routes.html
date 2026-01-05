@@ -10,20 +10,29 @@
     .route-card { cursor: pointer; transition: all 0.2s; border-left: 5px solid transparent; }
     .route-card:hover { transform: translateX(5px); background-color: #f8f9fa; border-left: 5px solid var(--primary-color); }
     
-    /* Yol tarifi metin kutusunu gizle (Sadece çizgiyi göster) */
     .leaflet-routing-container { display: none !important; }
 </style>
 
 <div class="row">
     <div class="col-md-4" style="height: 600px; overflow-y: auto;">
         <h3 class="mb-3 fw-bold"><i class="fas fa-map-signs text-success"></i> Rotalar</h3>
-        <p class="text-muted small mb-4">Haritada görmek için karta tıklayın. Detaylar için butonu kullanın.</p>
+        
+        <form action="/routes" method="GET" class="mb-3 sticky-top bg-white pt-2 pb-2" style="z-index: 10;">
+            <div class="input-group shadow-sm">
+                <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                <input type="text" name="q" class="form-control border-start-0" placeholder="Rota adı ara..." value="{{ search_query }}">
+            </div>
+        </form>
+        
+        <p class="text-muted small mb-3">Haritada görmek için karta tıklayın.</p>
         
         <div class="list-group">
             {% for route in routes %}
             <div class="list-group-item list-group-item-action route-card p-3 mb-2 shadow-sm border-0 rounded" 
-                 onclick="drawRoadRoute('{{ route[7] }}')"> <div class="d-flex w-100 justify-content-between align-items-center">
-                    <h5 class="mb-1 fw-bold text-dark">{{ route[0] }}</h5>
+                 onclick="drawRoadRoute('{{ route[7] }}')"> 
+                 
+                <div class="d-flex w-100 justify-content-between align-items-center">
+                    <h5 class="mb-1 fw-bold text-dark text-truncate">{{ route[0] }}</h5>
                     <span class="badge bg-light text-dark border">{{ route[2] }} km</span>
                 </div>
                 
@@ -48,7 +57,7 @@
                 
             </div>
             {% else %}
-            <div class="alert alert-warning">Henüz hiç rota eklenmemiş. İlk ekleyen sen ol!</div>
+            <div class="alert alert-warning">Aradığınız kriterde rota bulunamadı.</div>
             {% endfor %}
         </div>
     </div>
@@ -62,7 +71,6 @@
 <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
 <script>
-    // 1. Haritayı Başlat (İstanbul Merkezli)
     var map = L.map('map').setView([41.0082, 28.9784], 11);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -72,10 +80,9 @@
     // Python'dan gelen JSON verisini al (Güvenli şekilde)
     var routesData = JSON.parse('{{ map_data | safe }}'); 
     
-    var currentRoutingControl = null; // Şu an çizili olan yol
-    var currentMarkers = [];          // Şu an ekrandaki pinler
+    var currentRoutingControl = null;
+    var currentMarkers = [];
 
-    // 2. Fonksiyon: Tıklanan rotayı SOKAKLARA GÖRE çiz
     function drawRoadRoute(routeId) {
         var coords = routesData[routeId];
 
@@ -84,39 +91,31 @@
             return;
         }
 
-        // --- TEMİZLİK ---
-        // Önceki rotayı haritadan sil
         if (currentRoutingControl) {
             map.removeControl(currentRoutingControl);
             currentRoutingControl = null;
         }
-        // Önceki pinleri sil
         currentMarkers.forEach(function(marker) {
             map.removeLayer(marker);
         });
         currentMarkers = [];
 
-        // --- HAZIRLIK ---
-        // Koordinatları Leaflet formatına çevir
         var waypoints = coords.map(function(point) {
             return L.latLng(point[0], point[1]);
         });
 
-        // --- ÇİZİM (OSRM Motoru) ---
-        // Bu motor, noktalar arasını kuş uçuşu değil, sokakları takip ederek birleştirir.
         try {
             currentRoutingControl = L.Routing.control({
                 waypoints: waypoints,
                 routeWhileDragging: false, 
                 addWaypoints: false,       
                 draggableWaypoints: false, 
-                fitSelectedRoutes: true,   // Haritayı yola odakla
-                show: false,               // Metin kutusunu gizle
+                fitSelectedRoutes: true,
+                show: false,
                 lineOptions: {
-                    styles: [{color: '#0d6efd', opacity: 0.8, weight: 6}] // Kalın Mavi Çizgi
+                    styles: [{color: '#0d6efd', opacity: 0.8, weight: 6}]
                 },
                 createMarker: function(i, wp, nWps) {
-                    // Marker ikonlarını özelleştir
                     var label = "";
                     if (i === 0) label = "Başlangıç 🏁";
                     else if (i === nWps - 1) label = "Bitiş 🏁";

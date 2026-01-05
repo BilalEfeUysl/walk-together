@@ -33,6 +33,8 @@ WHERE role != 'admin';
 -- ==========================================
 -- 3. PERFORMANS İÇİN INDEXLER
 -- ==========================================
+
+
 CREATE INDEX idx_user_search ON users(username);
 CREATE INDEX idx_route_search ON routes(route_name);
 CREATE INDEX idx_stop_search ON stops(location_name);
@@ -185,3 +187,22 @@ LEFT JOIN events e ON r.route_id = e.route_id
 LEFT JOIN route_reviews rr ON r.route_id = rr.route_id
 GROUP BY r.route_id, r.route_name, r.difficulty_level, r.distance_km, u.username
 ORDER BY event_count DESC, average_rating DESC;
+
+
+
+-- 1. ETKİNLİKLER İÇİN INDEX (Eksikti, ekliyoruz)
+-- Açıklama kısmında arama yapacağız.
+CREATE INDEX idx_event_desc_btree ON events USING btree (description text_pattern_ops);
+
+-- 2. MEVCUT INDEXLERİ GÜÇLENDİRME (Silip B-Tree Pattern Ops ile yeniden kuruyoruz)
+-- Bu işlem, 'Ali%' gibi aramaların çok hızlı çalışmasını sağlar.
+
+DROP INDEX IF EXISTS idx_route_search;
+CREATE INDEX idx_route_name_btree ON routes USING btree (route_name text_pattern_ops);
+
+DROP INDEX IF EXISTS idx_club_search;
+CREATE INDEX idx_club_name_btree ON clubs USING btree (club_name text_pattern_ops);
+
+-- Arkadaş arama için de güncelleyelim
+DROP INDEX IF EXISTS idx_user_search;
+CREATE INDEX idx_user_username_btree ON users USING btree (username text_pattern_ops);

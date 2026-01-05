@@ -229,13 +229,29 @@ def index():
         return render_template('index.html', stats=stats, leaders=leaders, popular_routes=popular_routes)
     return "Veritabanı Hatası"
 
+# app.py içindeki routes fonksiyonunu bununla değiştir:
 @app.route('/routes')
 def routes():
     conn = get_db_connection()
     if conn:
         cur = conn.cursor()
-        cur.execute("SELECT * FROM view_popular_routes;") 
+        
+        search_query = request.args.get('q', '')
+        
+        # View üzerinden arama yapıyoruz
+        sql = "SELECT * FROM view_popular_routes"
+        params = []
+        
+        if search_query:
+            # view_popular_routes içindeki route_name [0. index]
+            sql += " WHERE route_name ILIKE %s"
+            params.append(f"%{search_query}%")
+            
+        cur.execute(sql, tuple(params))
         routes_list = cur.fetchall()
+        
+        # Harita verisi (Arama olsa bile haritada hepsi görünsün veya filtrelensin tercihi)
+        # Şimdilik harita verisini yine tüm duraklardan çekiyoruz ki harita boş kalmasın
         cur.execute("SELECT route_id, location_name, latitude, longitude FROM stops ORDER BY route_id, stop_order;")
         stops = cur.fetchall()
         map_data = {}
@@ -245,9 +261,10 @@ def routes():
             lon = float(stop[3]) if stop[3] else 0
             if r_id not in map_data: map_data[r_id] = []
             map_data[r_id].append([lat, lon])
+            
         cur.close()
         conn.close()
-        return render_template('routes.html', routes=routes_list, map_data=json.dumps(map_data))
+        return render_template('routes.html', routes=routes_list, map_data=json.dumps(map_data), search_query=search_query)
     return "Hata"
 
 # --- ETKİNLİĞE KATILMA ---
@@ -284,15 +301,22 @@ def join_event(event_id):
     return redirect(url_for('events'))
 
 # --- ETKİNLİK LİSTELEME ---
-@app.route('/events')
+# app.py içindeki events fonksiyonunu bununla değiştir:
+@app.route('/events', methods=['GET'])
 def events():
     conn = get_db_connection()
     if conn:
         cur = conn.cursor()
         
+        # Süresi dolanları güncelle
         cur.execute("UPDATE events SET status = 'completed' WHERE event_date < NOW() AND status IN ('active', 'upcoming')")
         conn.commit()
 
+        # ARAMA PARAMETRELERİ
+        search_query = request.args.get('q', '')
+        category_filter = request.args.get('category')
+        
+        # Temel Sorgu
         base_query = """
             SELECT e.event_id, e.event_date, e.status, e.description, e.max_participants,
                    r.route_name, r.distance_km, u.username, c.category_name, c.icon_url,
@@ -306,8 +330,16 @@ def events():
             WHERE e.status != 'completed' 
         """
         
-        category_filter = request.args.get('category')
         params = []
+        
+        # 1. Arama Filtresi (Hem açıklama hem rota isminde arar)
+        if search_query:
+            base_query += " AND (e.description ILIKE %s OR r.route_name ILIKE %s)"
+            # İki yere de aynı kelimeyi gönderiyoruz
+            term = f"%{search_query}%"
+            params.extend([term, term])
+            
+        # 2. Kategori Filtresi
         if category_filter:
             base_query += " AND c.category_name = %s"
             params.append(category_filter)
@@ -330,7 +362,7 @@ def events():
         
         cur.close()
         conn.close()
-        return render_template('events.html', events=events_list, categories=categories, my_events=my_participations)
+        return render_template('events.html', events=events_list, categories=categories, my_events=my_participations, search_query=search_query)
     return "Hata"
 
 # --- ETKİNLİK İPTAL ETME ---
@@ -471,17 +503,34 @@ def notifications_page():
     conn.close()
     return render_template('notifications.html', notifications=all_notifs)
 
+# app.py içindeki clubs fonksiyonunu bununla değiştir:
 @app.route('/clubs')
 def clubs():
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("""SELECT c.club_id, c.club_name, c.description, c.club_image_url, u.username, COUNT(cm.user_id) 
-                   FROM clubs c JOIN users u ON c.owner_id = u.user_id LEFT JOIN club_members cm ON c.club_id = cm.club_id 
-                   GROUP BY c.club_id, c.club_name, c.description, c.club_image_url, u.username ORDER BY 6 DESC;""")
+    
+    search_query = request.args.get('q', '')
+    
+    base_query = """
+        SELECT c.club_id, c.club_name, c.description, c.club_image_url, u.username, COUNT(cm.user_id) 
+        FROM clubs c 
+        JOIN users u ON c.owner_id = u.user_id 
+        LEFT JOIN club_members cm ON c.club_id = cm.club_id 
+    """
+    
+    params = []
+    if search_query:
+        base_query += " WHERE c.club_name ILIKE %s"
+        params.append(f"%{search_query}%")
+        
+    base_query += " GROUP BY c.club_id, c.club_name, c.description, c.club_image_url, u.username ORDER BY 6 DESC;"
+    
+    cur.execute(base_query, tuple(params))
     clubs_list = cur.fetchall()
+    
     cur.close()
     conn.close()
-    return render_template('clubs.html', clubs=clubs_list)
+    return render_template('clubs.html', clubs=clubs_list, search_query=search_query)
 
 @app.route('/create_club', methods=['GET', 'POST'])
 def create_club():
