@@ -1,147 +1,187 @@
-{% extends 'base.html' %}
-
-{% block content %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+{% extends 'base.html' %} {% block content %}
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css"
+/>
 
 <style>
-    /* Yol tarifi metin kutusunu gizle (Sadece çizgiyi göster) */
-    .leaflet-routing-container { display: none !important; }
+  /* Yol tarifi metin kutusunu gizle (Sadece çizgiyi göster) */
+  .leaflet-routing-container {
+    display: none !important;
+  }
 </style>
 
 <div class="card mb-4 border-0 shadow-sm">
-    <div class="card-body p-5 bg-light rounded-3">
-        <div class="d-flex justify-content-between align-items-center">
-            <h1 class="display-5 fw-bold">{{ route[2] }}</h1> 
-            <span class="badge bg-primary fs-5">{{ route[4] }}</span> 
-        </div>
-        
-        <p class="lead text-muted">
-            <i class="fas fa-user-edit"></i> Oluşturan: 
-            <a href="/profile/{{ route[1] }}" class="text-decoration-none fw-bold">{{ route[7] }}</a>
-        </p>
-
-        <div class="d-flex gap-4 mt-4">
-            <div><i class="fas fa-ruler-horizontal fa-2x text-success"></i> <br> <strong>{{ route[3] }} km</strong></div>
-            <div><i class="fas fa-hourglass-half fa-2x text-warning"></i> <br> <strong>{{ route[5] }} dk</strong></div>
-            <div><i class="fas fa-calendar-alt fa-2x text-info"></i> <br> <strong>{{ route[6].strftime('%Y') }}</strong></div>
-        </div>
+  <div class="card-body p-5 bg-light rounded-3">
+    <div class="d-flex justify-content-between align-items-center">
+      <h1 class="display-5 fw-bold">{{ route[2] }}</h1>
+      <span class="badge bg-primary fs-5">{{ route[4] }}</span>
     </div>
+
+    <p class="lead text-muted">
+      <i class="fas fa-user-edit"></i> Oluşturan:
+      <a href="/profile/{{ route[1] }}" class="text-decoration-none fw-bold"
+        >{{ route[7] }}</a
+      >
+    </p>
+
+    <div class="d-flex gap-4 mt-4">
+      <div>
+        <i class="fas fa-ruler-horizontal fa-2x text-success"></i> <br />
+        <strong>{{ route[3] }} km</strong>
+      </div>
+      <div>
+        <i class="fas fa-hourglass-half fa-2x text-warning"></i> <br />
+        <strong>{{ route[5] }} dk</strong>
+      </div>
+      <div>
+        <i class="fas fa-calendar-alt fa-2x text-info"></i> <br />
+        <strong>{{ route[6].strftime('%Y') }}</strong>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="card border-0 shadow-sm mb-4">
-    <div class="card-body p-0">
-        <div id="detailMap" style="height: 400px; width: 100%; border-radius: 8px;"></div>
-    </div>
+  <div class="card-body p-0">
+    <div
+      id="detailMap"
+      style="height: 400px; width: 100%; border-radius: 8px"
+    ></div>
+  </div>
 </div>
 
 <div class="row">
-    <div class="col-md-4">
-        <h4 class="mb-3">🚏 Duraklar</h4>
-        <ul class="list-group">
-            {% for stop in stops %}
-            <li class="list-group-item d-flex align-items-center">
-                <span class="badge bg-dark rounded-circle me-2">{{ stop[2] }}</span>
-                {{ stop[3] }}
-            </li>
-            {% endfor %}
-        </ul>
+  <div class="col-md-4">
+    <h4 class="mb-3">🚏 Duraklar</h4>
+    <ul class="list-group">
+      {% for stop in stops %}
+      <li class="list-group-item d-flex align-items-center">
+        <span class="badge bg-dark rounded-circle me-2">{{ stop[2] }}</span>
+        {{ stop[3] }}
+      </li>
+      {% else %}
+      <li class="list-group-item text-muted">Durak bilgisi yok.</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div class="col-md-8">
+    <h4 class="mb-3">💬 Değerlendirmeler ({{ reviews|length }})</h4>
+
+    <div class="card mb-4 bg-light border-0">
+      <div class="card-body">
+        <h6 class="card-title">Bir yorum yaz...</h6>
+        <form method="POST">
+          <div class="mb-2">
+            <select
+              name="rating"
+              class="form-select form-select-sm w-auto d-inline-block"
+              required
+            >
+              <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+              <option value="4">⭐⭐⭐⭐ (4)</option>
+              <option value="3">⭐⭐⭐ (3)</option>
+              <option value="2">⭐⭐ (2)</option>
+              <option value="1">⭐ (1)</option>
+            </select>
+          </div>
+          <div class="mb-2">
+            <textarea
+              name="comment"
+              class="form-control"
+              rows="2"
+              placeholder="Rota nasıldı? Zemin nasıldı?"
+              required
+            ></textarea>
+          </div>
+          <button type="submit" class="btn btn-success btn-sm">Gönder</button>
+        </form>
+      </div>
     </div>
 
-    <div class="col-md-8">
-        <h4 class="mb-3">💬 Değerlendirmeler ({{ reviews|length }})</h4>
-
-        <div class="card mb-4 bg-light border-0">
-            <div class="card-body">
-                <h6 class="card-title">Bir yorum yaz...</h6>
-                <form method="POST">
-                    <div class="mb-2">
-                        <select name="rating" class="form-select form-select-sm w-auto d-inline-block" required>
-                            <option value="5">⭐⭐⭐⭐⭐ (5)</option>
-                            <option value="4">⭐⭐⭐⭐ (4)</option>
-                            <option value="3">⭐⭐⭐ (3)</option>
-                            <option value="2">⭐⭐ (2)</option>
-                            <option value="1">⭐ (1)</option>
-                        </select>
-                    </div>
-                    <div class="mb-2">
-                        <textarea name="comment" class="form-control" rows="2" placeholder="Rota nasıldı? Zemin nasıldı?" required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-success btn-sm">Gönder</button>
-                </form>
+    {% for review in reviews %}
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div class="d-flex align-items-center">
+            <img
+              src="{{ review[4] if review[4] else 'https://ui-avatars.com/api/?name=' + review[3] }}"
+              class="rounded-circle me-2"
+              width="40"
+            />
+            <div>
+              <h6 class="mb-0 fw-bold">{{ review[3] }}</h6>
+              <small class="text-muted"
+                >{{ review[2].strftime('%d.%m.%Y') }}</small
+              >
             </div>
+          </div>
+          <span class="text-warning">
+            {% for i in range(review[0]) %}⭐{% endfor %}
+          </span>
         </div>
-
-        {% for review in reviews %}
-        <div class="card mb-3">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div class="d-flex align-items-center">
-                        <img src="{{ review[4] if review[4] else 'https://ui-avatars.com/api/?name=' + review[3] }}" class="rounded-circle me-2" width="40">
-                        <div>
-                            <h6 class="mb-0 fw-bold">{{ review[3] }}</h6>
-                            <small class="text-muted">{{ review[2].strftime('%d.%m.%Y') }}</small>
-                        </div>
-                    </div>
-                    <span class="text-warning">
-                        {% for i in range(review[0]) %}⭐{% endfor %}
-                    </span>
-                </div>
-                <p class="card-text mt-2">{{ review[1] }}</p>
-            </div>
-        </div>
-        {% else %}
-        <div class="alert alert-secondary">Henüz yorum yapılmamış. İlk yorumu sen yap!</div>
-        {% endfor %}
+        <p class="card-text mt-2">{{ review[1] }}</p>
+      </div>
     </div>
+    {% else %}
+    <div class="alert alert-secondary">
+      Henüz yorum yapılmamış. İlk yorumu sen yap!
+    </div>
+    {% endfor %}
+  </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
 <script>
-    // Backend'den durakları çekiyoruz (Enlem, Boylam)
-    // stops tablosunda: 4. index latitude, 5. index longitude
-    var rawStops = [
-        {% for stop in stops %}
-            [{{ stop[4] }}, {{ stop[5] }}], 
-        {% endfor %}
-    ];
+  // Backend'den durakları çekiyoruz (Enlem, Boylam)
+  // stops tablosunda: 4. index latitude, 5. index longitude
+  var rawStops = [
+      {% for stop in stops %}
+          [{{ stop[4] }}, {{ stop[5] }}],
+      {% endfor %}
+  ];
 
-    if (rawStops.length > 0) {
-        // Haritayı başlat
-        var map = L.map('detailMap').setView(rawStops[0], 13);
-        
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: 'OpenStreetMap'
-        }).addTo(map);
+  if (rawStops.length > 0) {
+      // Haritayı başlat
+      var map = L.map('detailMap').setView(rawStops[0], 13);
 
-        // Koordinatları L.latLng formatına çevir
-        var waypoints = rawStops.map(function(coords) {
-            return L.latLng(coords[0], coords[1]);
-        });
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: 'OpenStreetMap'
+      }).addTo(map);
 
-        // OSRM MOTORU: Sokakları takip eden yolu çiz
-        L.Routing.control({
-            waypoints: waypoints,
-            routeWhileDragging: false, 
-            addWaypoints: false,       // Kullanıcı değiştiremesin
-            draggableWaypoints: false, 
-            fitSelectedRoutes: true,   // Haritayı yola oturt
-            show: false,               // Metin kutusunu gizle
-            lineOptions: {
-                styles: [{color: '#d63031', opacity: 0.8, weight: 6}] // Kırmızı Kalın Çizgi
-            },
-            createMarker: function(i, wp, nWps) {
-                // Pinleri isimlendir
-                var label = "";
-                if (i === 0) label = "Başlangıç 🏁";
-                else if (i === nWps - 1) label = "Bitiş 🏁";
-                else label = "Durak " + (i + 1);
-                
-                return L.marker(wp.latLng).bindPopup(label);
-            }
-        }).addTo(map);
-    }
+      // Koordinatları L.latLng formatına çevir
+      var waypoints = rawStops.map(function(coords) {
+          return L.latLng(coords[0], coords[1]);
+      });
+
+      // OSRM MOTORU: Sokakları takip eden yolu çiz
+      L.Routing.control({
+          waypoints: waypoints,
+          routeWhileDragging: false,
+          addWaypoints: false,       // Kullanıcı değiştiremesin
+          draggableWaypoints: false,
+          fitSelectedRoutes: true,   // Haritayı yola oturt
+          show: false,               // Metin kutusunu gizle
+          lineOptions: {
+              styles: [{color: '#d63031', opacity: 0.8, weight: 6}] // Kırmızı Kalın Çizgi
+          },
+          createMarker: function(i, wp, nWps) {
+              // Pinleri isimlendir
+              var label = "";
+              if (i === 0) label = "Başlangıç 🏁";
+              else if (i === nWps - 1) label = "Bitiş 🏁";
+              else label = "Durak " + (i + 1);
+
+              return L.marker(wp.latLng).bindPopup(label);
+          }
+      }).addTo(map);
+  }
 </script>
 {% endblock %}

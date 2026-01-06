@@ -1,135 +1,218 @@
-{% extends 'base.html' %}
-
-{% block content %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+{% extends 'base.html' %} {% block content %}
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css"
+/>
 
 <style>
-    #map { height: 600px; width: 100%; border-radius: 10px; border: 2px solid #eee; }
-    
-    .route-card { cursor: pointer; transition: all 0.2s; border-left: 5px solid transparent; }
-    .route-card:hover { transform: translateX(5px); background-color: #f8f9fa; border-left: 5px solid var(--primary-color); }
-    
-    .leaflet-routing-container { display: none !important; }
+  #map {
+    height: 600px;
+    width: 100%;
+    border-radius: 10px;
+    border: 2px solid #eee;
+  }
+
+  .route-card {
+    cursor: pointer;
+    transition: all 0.2s;
+    border-left: 5px solid transparent;
+  }
+  .route-card:hover {
+    transform: translateX(5px);
+    background-color: #f8f9fa;
+    border-left: 5px solid var(--primary-color);
+  }
+
+  .leaflet-routing-container {
+    display: none !important;
+  }
 </style>
 
 <div class="row">
-    <div class="col-md-4" style="height: 600px; overflow-y: auto;">
-        <h3 class="mb-3 fw-bold"><i class="fas fa-map-signs text-success"></i> Rotalar</h3>
-        
-        <form action="/routes" method="GET" class="mb-3 sticky-top bg-white pt-2 pb-2" style="z-index: 10;">
-            <div class="input-group shadow-sm">
-                <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
-                <input type="text" name="q" class="form-control border-start-0" placeholder="Rota adı ara..." value="{{ search_query }}">
-            </div>
-        </form>
-        
-        <p class="text-muted small mb-3">Haritada görmek için karta tıklayın.</p>
-        
-        <div class="list-group">
-            {% for route in routes %}
-            <div class="list-group-item list-group-item-action route-card p-3 mb-2 shadow-sm border-0 rounded" 
-                 onclick="drawRoadRoute('{{ route[7] }}')"> 
-                 
-                <div class="d-flex w-100 justify-content-between align-items-center">
-                    <h5 class="mb-1 fw-bold text-dark text-truncate">{{ route[0] }}</h5>
-                    <span class="badge bg-light text-dark border">{{ route[2] }} km</span>
-                </div>
-                
-                <div class="mb-2">
-                    <span class="badge 
-                        {% if route[1] == 'Easy' %}bg-success
-                        {% elif route[1] == 'Medium' %}bg-warning text-dark
-                        {% else %}bg-danger{% endif %}">
-                        {{ route[1] }}
-                    </span>
-                    <small class="text-muted ms-2"><i class="fas fa-user"></i> {{ route[3] }}</small>
-                </div>
+  <div class="col-md-4" style="height: 600px; overflow-y: auto">
+    <h3 class="mb-3 fw-bold">
+      <i class="fas fa-map-signs text-success"></i> Rotalar
+    </h3>
 
-                <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
-                    <small class="text-warning fw-bold">
-                        {% if route[5] > 0 %} ⭐ {{ route[5] }} ({{ route[6] }} Yorum) {% else %} Yeni Rota {% endif %}
-                    </small>
-                    <a href="/route/{{ route[7] }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                        Detay & Yorum <i class="fas fa-arrow-right ms-1"></i>
-                    </a>
-                </div>
-                
-            </div>
-            {% else %}
-            <div class="alert alert-warning">Aradığınız kriterde rota bulunamadı.</div>
-            {% endfor %}
+    <form
+      action="/routes"
+      method="GET"
+      class="mb-3 sticky-top bg-white pt-2 pb-2"
+      style="z-index: 10"
+    >
+      <div class="input-group shadow-sm">
+        <span class="input-group-text bg-white border-end-0"
+          ><i class="fas fa-search text-muted"></i
+        ></span>
+        <input
+          type="text"
+          name="q"
+          class="form-control border-start-0"
+          placeholder="Rota adı ara..."
+          value="{{ search_query }}"
+        />
+      </div>
+    </form>
+
+    <form
+      action="/routes"
+      method="GET"
+      class="mb-4 bg-light p-3 rounded border"
+    >
+      <h6 class="fw-bold text-dark mb-2">
+        <i class="fas fa-filter text-primary"></i> Mesafe Filtrele
+      </h6>
+      <div class="input-group input-group-sm mb-2">
+        <input
+          type="number"
+          name="min_dist"
+          class="form-control"
+          placeholder="Min KM"
+          required
+          step="0.1"
+        />
+        <span class="input-group-text">-</span>
+        <input
+          type="number"
+          name="max_dist"
+          class="form-control"
+          placeholder="Max KM"
+          required
+          step="0.1"
+        />
+      </div>
+      <button type="submit" class="btn btn-sm btn-primary w-100">Uygula</button>
+      {% if request.args.get('min_dist') %}
+      <a href="/routes" class="btn btn-sm btn-outline-secondary w-100 mt-2"
+        >Temizle</a
+      >
+      {% endif %}
+    </form>
+
+    <p class="text-muted small mb-3">Haritada görmek için karta tıklayın.</p>
+
+    <div class="list-group">
+      {% for route in routes %}
+      <div
+        class="list-group-item list-group-item-action route-card p-3 mb-2 shadow-sm border-0 rounded"
+        onclick="drawRoadRoute('{{ route[7] }}')"
+      >
+        <div class="d-flex w-100 justify-content-between align-items-center">
+          <h5 class="mb-1 fw-bold text-dark text-truncate">{{ route[0] }}</h5>
+          <span class="badge bg-light text-dark border">{{ route[2] }} km</span>
         </div>
-    </div>
 
-    <div class="col-md-8">
-        <div id="map" class="shadow-sm"></div>
+        <div class="mb-2">
+          <span
+            class="badge {% if route[1] == 'Easy' %}bg-success {% elif route[1] == 'Medium' %}bg-warning text-dark {% else %}bg-danger{% endif %}"
+          >
+            {{ route[1] }}
+          </span>
+          <small class="text-muted ms-2"
+            ><i class="fas fa-user"></i> {{ route[3] }}</small
+          >
+        </div>
+
+        <div
+          class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top"
+        >
+          <small class="text-warning fw-bold">
+            {% if route[5] > 0 %} ⭐ {{ route[5] }} ({{ route[6] }} Yorum) {%
+            else %} Yeni Rota {% endif %}
+          </small>
+          <a
+            href="/route/{{ route[7] }}"
+            class="btn btn-sm btn-outline-primary rounded-pill px-3"
+          >
+            Detay & Yorum <i class="fas fa-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+      {% else %}
+      <div class="alert alert-warning">
+        Aradığınız kriterde rota bulunamadı.
+      </div>
+      {% endfor %}
     </div>
+  </div>
+
+  <div class="col-md-8">
+    <div id="map" class="shadow-sm"></div>
+  </div>
 </div>
+
+<script id="routes-data" type="application/json">
+  {{ map_data | safe }}
+</script>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
 <script>
-    var map = L.map('map').setView([41.0082, 28.9784], 11);
+  var map = L.map("map").setView([41.0082, 28.9784], 11);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors",
+  }).addTo(map);
 
-    // Python'dan gelen JSON verisini al (Güvenli şekilde)
-    var routesData = JSON.parse('{{ map_data | safe }}'); 
-    
-    var currentRoutingControl = null;
-    var currentMarkers = [];
+  // Veriyi script tag'inin içinden okuyoruz
+  var rawData = document.getElementById("routes-data").textContent;
+  var routesData = JSON.parse(rawData);
 
-    function drawRoadRoute(routeId) {
-        var coords = routesData[routeId];
+  var currentRoutingControl = null;
+  var currentMarkers = [];
 
-        if (!coords || coords.length === 0) {
-            alert("Bu rotanın durak bilgisi bulunamadı!");
-            return;
-        }
+  function drawRoadRoute(routeId) {
+    var coords = routesData[routeId];
 
-        if (currentRoutingControl) {
-            map.removeControl(currentRoutingControl);
-            currentRoutingControl = null;
-        }
-        currentMarkers.forEach(function(marker) {
-            map.removeLayer(marker);
-        });
-        currentMarkers = [];
-
-        var waypoints = coords.map(function(point) {
-            return L.latLng(point[0], point[1]);
-        });
-
-        try {
-            currentRoutingControl = L.Routing.control({
-                waypoints: waypoints,
-                routeWhileDragging: false, 
-                addWaypoints: false,       
-                draggableWaypoints: false, 
-                fitSelectedRoutes: true,
-                show: false,
-                lineOptions: {
-                    styles: [{color: '#0d6efd', opacity: 0.8, weight: 6}]
-                },
-                createMarker: function(i, wp, nWps) {
-                    var label = "";
-                    if (i === 0) label = "Başlangıç 🏁";
-                    else if (i === nWps - 1) label = "Bitiş 🏁";
-                    else label = "Durak " + (i + 1);
-                    
-                    var marker = L.marker(wp.latLng).bindPopup(label);
-                    currentMarkers.push(marker);
-                    return marker;
-                }
-            }).addTo(map);
-        } catch (e) {
-            console.error("Rota çizim hatası:", e);
-            alert("Rota çizilirken bir hata oluştu.");
-        }
+    if (!coords || coords.length === 0) {
+      alert("Bu rotanın durak bilgisi bulunamadı!");
+      return;
     }
+
+    if (currentRoutingControl) {
+      map.removeControl(currentRoutingControl);
+      currentRoutingControl = null;
+    }
+    currentMarkers.forEach(function (marker) {
+      map.removeLayer(marker);
+    });
+    currentMarkers = [];
+
+    var waypoints = coords.map(function (point) {
+      return L.latLng(point[0], point[1]);
+    });
+
+    try {
+      currentRoutingControl = L.Routing.control({
+        waypoints: waypoints,
+        routeWhileDragging: false,
+        addWaypoints: false,
+        draggableWaypoints: false,
+        fitSelectedRoutes: true,
+        show: false,
+        lineOptions: {
+          styles: [{ color: "#0d6efd", opacity: 0.8, weight: 6 }],
+        },
+        createMarker: function (i, wp, nWps) {
+          var label = "";
+          if (i === 0) label = "Başlangıç 🏁";
+          else if (i === nWps - 1) label = "Bitiş 🏁";
+          else label = "Durak " + (i + 1);
+
+          var marker = L.marker(wp.latLng).bindPopup(label);
+          currentMarkers.push(marker);
+          return marker;
+        },
+      }).addTo(map);
+    } catch (e) {
+      console.error("Rota çizim hatası:", e);
+      alert("Rota çizilirken bir hata oluştu.");
+    }
+  }
 </script>
 {% endblock %}

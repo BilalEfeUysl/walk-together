@@ -1,139 +1,193 @@
-{% extends 'base.html' %}
-
-{% block content %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
-<style>.leaflet-routing-container { display: none !important; }</style>
+{% extends 'base.html' %} {% block content %}
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css"
+/>
+<style>
+  .leaflet-routing-container {
+    display: none !important;
+  }
+</style>
 
 <div class="row">
-    <div class="col-md-8">
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-center">
-                    <span class="badge bg-primary mb-2">{{ event[13] }}</span> {% if event[6] == 'active' or event[6] == 'upcoming' %}
-                        <span class="badge bg-success">Aktif</span>
-                    {% else %}
-                        <span class="badge bg-secondary">Kapalı</span>
-                    {% endif %}
-                </div>
-                
-                <h2 class="fw-bold mb-3">{{ event[5] }}</h2> <div class="d-flex gap-4 mb-4 text-muted border-bottom pb-3">
-                    <div><i class="fas fa-calendar-alt text-warning"></i> {{ event[4].strftime('%d.%m.%Y %H:%M') }}</div>
-                    <div><i class="fas fa-ruler text-info"></i> {{ event[9] }} km</div>
-                    <div><i class="fas fa-clock text-success"></i> {{ event[10] }} dk</div>
-                </div>
-
-                <p class="text-dark lead fs-6">{{ event[5] }}</p>
-
-                <div class="d-flex align-items-center bg-light p-3 rounded mt-4">
-                    <img src="{{ event[12] }}" class="rounded-circle me-3" width="50" height="50" style="object-fit:cover;">
-                    <div>
-                        <small class="text-muted d-block">Organizatör</small>
-                        <a href="/profile/{{ event[1] }}" class="fw-bold text-dark text-decoration-none">{{ event[11] }}</a>
-                    </div>
-                    {% if session.get('user_id') == event[1] %}
-                    <div class="ms-auto">
-                        <span class="badge bg-warning text-dark">Bu senin etkinliğin!</span>
-                    </div>
-                    {% endif %}
-                </div>
-
-                <h5 class="fw-bold mt-4">📍 Rota Haritası</h5>
-                <div id="detailMap" style="height: 350px; border-radius: 10px;" class="border shadow-sm"></div>
-            </div>
+  <div class="col-md-8">
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="badge bg-primary mb-2">{{ event[13] }}</span>
+          {% if event[6] == 'active' or event[6] == 'upcoming' %}
+          <span class="badge bg-success">Aktif</span>
+          {% else %}
+          <span class="badge bg-secondary">Kapalı</span>
+          {% endif %}
         </div>
+
+        <h2 class="fw-bold mb-3">{{ event[15] }}</h2>
+
+        <div class="d-flex gap-4 mb-4 text-muted border-bottom pb-3">
+          <div>
+            <i class="fas fa-calendar-alt text-warning"></i> {{
+            event[4].strftime('%d.%m.%Y %H:%M') }}
+          </div>
+          <div><i class="fas fa-ruler text-info"></i> {{ event[9] }} km</div>
+          <div>
+            <i class="fas fa-clock text-success"></i> {{ event[10] }} dk
+          </div>
+        </div>
+
+        <p class="text-dark lead fs-6">{{ event[5] }}</p>
+
+        <div class="d-flex align-items-center bg-light p-3 rounded mt-4">
+          <img
+            src="{{ event[12] }}"
+            class="rounded-circle me-3"
+            width="50"
+            height="50"
+            style="object-fit: cover"
+          />
+          <div>
+            <small class="text-muted d-block">Organizatör</small>
+            <a
+              href="/profile/{{ event[1] }}/"
+              class="fw-bold text-dark text-decoration-none"
+              >{{ event[11] }}</a
+            >
+          </div>
+          {% if session.get('user_id') == event[1] %}
+          <div class="ms-auto">
+            <span class="badge bg-warning text-dark">Bu senin etkinliğin!</span>
+          </div>
+          {% endif %}
+        </div>
+
+        <h5 class="fw-bold mt-4">📍 Rota Haritası</h5>
+        <div
+          id="detailMap"
+          style="height: 350px; border-radius: 10px"
+          class="border shadow-sm"
+        ></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body text-center">
+        <h5 class="fw-bold">Kontenjan Durumu</h5>
+        <div class="progress mb-3" style="height: 25px">
+          {% set percent = (event[14] / event[7] * 100) %}
+          <div
+            class="progress-bar {% if percent >= 100 %}bg-danger{% else %}bg-success{% endif %}"
+            role="progressbar"
+            style="width: {{ percent }}%"
+          >
+            {{ event[14] }} / {{ event[7] }}
+          </div>
+        </div>
+
+        {% if event[6] == 'cancelled' %}
+        <button class="btn btn-secondary w-100" disabled>
+          🚫 İptal Edildi
+        </button>
+
+        {% elif event[6] == 'completed' %}
+        <button class="btn btn-secondary w-100" disabled>🏁 Tamamlandı</button>
+
+        {% else %} {% if am_i_joined %}
+        <button class="btn btn-success w-100 mb-2" disabled>
+          <i class="fas fa-check"></i> Zaten Katıldın
+        </button>
+        {% elif event[14] >= event[7] %}
+        <button class="btn btn-warning w-100" disabled>Kontenjan Dolu</button>
+        {% else %}
+        <a
+          href="/join_event/{{ event[0] }}"
+          class="btn btn-primary w-100 mb-2 fw-bold shadow-sm"
+        >
+          <i class="fas fa-running"></i> Etkinliğe Katıl
+        </a>
+        {% endif %} {% if session.get('user_id') == event[1] %}
+        <hr />
+        <a
+          href="/cancel_event/{{ event[0] }}"
+          class="btn btn-outline-danger btn-sm w-100"
+          onclick="return confirm('⚠️ Etkinliği iptal etmek istediğine emin misin? Tüm katılımcılara bildirim gidecek!')"
+        >
+          <i class="fas fa-ban"></i> Etkinliği İptal Et
+        </a>
+        {% endif %} {% endif %}
+      </div>
     </div>
 
-    <div class="col-md-4">
-        
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-body text-center">
-                <h5 class="fw-bold">Kontenjan Durumu</h5>
-                <div class="progress mb-3" style="height: 25px;">
-                    {% set percent = (event[14] / event[7] * 100) %}
-                    <div class="progress-bar {% if percent >= 100 %}bg-danger{% else %}bg-success{% endif %}" 
-                         role="progressbar" style="width: {{ percent }}%">
-                        {{ event[14] }} / {{ event[7] }}
-                    </div>
-                </div>
-
-                {% if event[6] == 'cancelled' %}
-                    <button class="btn btn-secondary w-100" disabled>🚫 İptal Edildi</button>
-                
-                {% elif event[6] == 'completed' %}
-                    <button class="btn btn-secondary w-100" disabled>🏁 Tamamlandı</button>
-                
-                {% else %}
-                    {% if am_i_joined %}
-                        <button class="btn btn-success w-100 mb-2" disabled><i class="fas fa-check"></i> Zaten Katıldın</button>
-                    {% elif event[14] >= event[7] %}
-                        <button class="btn btn-warning w-100" disabled>Kontenjan Dolu</button>
-                    {% else %}
-                        <a href="/join_event/{{ event[0] }}" class="btn btn-primary w-100 mb-2 fw-bold shadow-sm">
-                            <i class="fas fa-running"></i> Etkinliğe Katıl
-                        </a>
-                    {% endif %}
-
-                    {% if session.get('user_id') == event[1] %}
-                        <hr>
-                        <a href="/cancel_event/{{ event[0] }}" class="btn btn-outline-danger btn-sm w-100" 
-                           onclick="return confirm('⚠️ Etkinliği iptal etmek istediğine emin misin? Tüm katılımcılara bildirim gidecek!')">
-                           <i class="fas fa-ban"></i> Etkinliği İptal Et
-                        </a>
-                    {% endif %}
-
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white fw-bold border-bottom-0 pt-3">
-                👥 Katılımcılar ({{ participants|length }})
-            </div>
-            <ul class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
-                {% for p in participants %}
-                <li class="list-group-item d-flex align-items-center">
-                    <a href="/profile/{{ p[0] }}">
-                        <img src="{{ p[2] }}" class="rounded-circle me-3" width="40" height="40">
-                    </a>
-                    <div>
-                        <a href="/profile/{{ p[0] }}" class="text-dark text-decoration-none fw-bold">{{ p[1] }}</a>
-                        {% if p[0] == event[1] %}
-                            <span class="badge bg-warning text-dark ms-2" style="font-size: 0.7rem;">Organizatör</span>
-                        {% endif %}
-                    </div>
-                </li>
-                {% else %}
-                <li class="list-group-item text-center text-muted py-4">Henüz kimse katılmamış.<br>İlk sen ol!</li>
-                {% endfor %}
-            </ul>
-        </div>
-
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white fw-bold border-bottom-0 pt-3">
+        👥 Katılımcılar ({{ participants|length }})
+      </div>
+      <ul
+        class="list-group list-group-flush"
+        style="max-height: 400px; overflow-y: auto"
+      >
+        {% for p in participants %}
+        <li class="list-group-item d-flex align-items-center">
+          <a href="/profile/{{ p[0] }}/">
+            <img
+              src="{{ p[2] }}"
+              class="rounded-circle me-3"
+              width="40"
+              height="40"
+            />
+          </a>
+          <div>
+            <a
+              href="/profile/{{ p[0] }}/"
+              class="text-dark text-decoration-none fw-bold"
+              >{{ p[1] }}</a
+            >
+            {% if p[0] == event[1] %}
+            <span
+              class="badge bg-warning text-dark ms-2"
+              style="font-size: 0.7rem"
+              >Organizatör</span
+            >
+            {% endif %}
+          </div>
+        </li>
+        {% else %}
+        <li class="list-group-item text-center text-muted py-4">
+          Henüz kimse katılmamış.<br />İlk sen ol!
+        </li>
+        {% endfor %}
+      </ul>
     </div>
+  </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 <script>
-    var rawStops = [{% for s in stops %} [{{ s[4] }}, {{ s[5] }}], {% endfor %}];
-    if (rawStops.length > 0) {
-        var map = L.map('detailMap').setView(rawStops[0], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: 'OpenStreetMap' }).addTo(map);
-        
-        var waypoints = rawStops.map(c => L.latLng(c[0], c[1]));
-        
-        L.Routing.control({
-            waypoints: waypoints,
-            routeWhileDragging: false,
-            addWaypoints: false,
-            draggableWaypoints: false,
-            fitSelectedRoutes: true,
-            show: false,
-            lineOptions: { styles: [{color: '#0d6efd', opacity: 0.8, weight: 6}] },
-            createMarker: function(i, wp, n) { 
-                return L.marker(wp.latLng).bindPopup(i === 0 ? "Başlangıç" : (i === n-1 ? "Bitiş" : "Durak")); 
-            }
-        }).addTo(map);
-    }
+  var rawStops = [{% for s in stops %} [{{ s[4] }}, {{ s[5] }}], {% endfor %}];
+  if (rawStops.length > 0) {
+      var map = L.map('detailMap').setView(rawStops[0], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: 'OpenStreetMap' }).addTo(map);
+
+      var waypoints = rawStops.map(c => L.latLng(c[0], c[1]));
+
+      L.Routing.control({
+          waypoints: waypoints,
+          routeWhileDragging: false,
+          addWaypoints: false,
+          draggableWaypoints: false,
+          fitSelectedRoutes: true,
+          show: false,
+          lineOptions: { styles: [{color: '#0d6efd', opacity: 0.8, weight: 6}] },
+          createMarker: function(i, wp, n) {
+              return L.marker(wp.latLng).bindPopup(i === 0 ? "Başlangıç" : (i === n-1 ? "Bitiş" : "Durak"));
+          }
+      }).addTo(map);
+  }
 </script>
 {% endblock %}

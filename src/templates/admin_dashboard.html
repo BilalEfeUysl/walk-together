@@ -1,0 +1,333 @@
+{% extends 'base.html' %} {% block content %}
+<div class="container-fluid">
+  <h2 class="mb-4 fw-bold">
+    <i class="fas fa-cogs text-dark"></i> Yönetim Paneli
+  </h2>
+
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card bg-primary text-white shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Toplam Kullanıcı</h5>
+          <h2 class="display-6 fw-bold">{{ stats.users }}</h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card bg-success text-white shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Toplam Rota</h5>
+          <h2 class="display-6 fw-bold">{{ stats.routes }}</h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card bg-warning text-dark shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Toplam Etkinlik</h5>
+          <h2 class="display-6 fw-bold">{{ stats.events }}</h2>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
+    <li class="nav-item">
+      <button
+        class="nav-link active fw-bold"
+        data-bs-toggle="tab"
+        data-bs-target="#users"
+      >
+        👥 Kullanıcılar
+      </button>
+    </li>
+    <li class="nav-item">
+      <button
+        class="nav-link fw-bold"
+        data-bs-toggle="tab"
+        data-bs-target="#content"
+      >
+        📝 İçerik Yönetimi
+      </button>
+    </li>
+    <li class="nav-item">
+      <button
+        class="nav-link fw-bold"
+        data-bs-toggle="tab"
+        data-bs-target="#definitions"
+      >
+        ⚙️ Tanımlamalar
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content">
+    <div class="tab-pane fade show active" id="users">
+      <div class="card shadow-sm border-0">
+        <div class="card-body table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>ID</th>
+                <th>Kullanıcı Adı</th>
+                <th>E-Posta</th>
+                <th>Rol</th>
+                <th>Kayıt Tarihi</th>
+                <th>İşlem</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for u in users %}
+              <tr>
+                <td>{{ u[0] }}</td>
+                <td class="fw-bold">{{ u[1] }}</td>
+                <td>{{ u[2] }}</td>
+                <td>
+                  {% if u[3] == 'admin' %}
+                  <span class="badge bg-danger">Yönetici</span>
+                  {% else %}
+                  <span class="badge bg-secondary">Üye</span>
+                  {% endif %}
+                </td>
+                <td>{{ u[4].strftime('%d.%m.%Y') }}</td>
+                <td>
+                  {% if u[3] != 'admin' %}
+                  <a
+                    href="/admin/delete_user/{{ u[0] }}"
+                    class="btn btn-sm btn-outline-danger"
+                    onclick="return confirm('Bu kullanıcıyı ve tüm verilerini silmek istediğine emin misin?');"
+                  >
+                    <i class="fas fa-trash-alt"></i> Sil
+                  </a>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="content">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card shadow-sm border-0 mb-3">
+            <div class="card-header bg-white fw-bold">Son Rotalar</div>
+            <ul
+              class="list-group list-group-flush"
+              style="max-height: 400px; overflow-y: auto"
+            >
+              {% for r in routes %}
+              <li
+                class="list-group-item d-flex justify-content-between align-items-center"
+              >
+                <span class="text-truncate" style="max-width: 70%"
+                  >{{ r[1] }}</span
+                >
+                <a
+                  href="/admin/delete_content/route/{{ r[0] }}"
+                  class="btn btn-sm btn-danger py-0"
+                  onclick="return confirm('Sil?')"
+                  >Sil</a
+                >
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card shadow-sm border-0">
+            <div class="card-header bg-white fw-bold">Son Etkinlikler</div>
+            <ul
+              class="list-group list-group-flush"
+              style="max-height: 400px; overflow-y: auto"
+            >
+              {% for e in events %}
+              <li
+                class="list-group-item d-flex justify-content-between align-items-center"
+              >
+                <div class="text-truncate" style="max-width: 70%">
+                  <span class="fw-bold d-block">{{ e[1] }}</span>
+                  <small class="text-muted" style="font-size: 0.75rem"
+                    >{{ e[2] }}</small
+                  >
+                </div>
+                <a
+                  href="/admin/delete_content/event/{{ e[0] }}"
+                  class="btn btn-sm btn-danger py-0"
+                  onclick="return confirm('Sil?')"
+                  >Sil</a
+                >
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="definitions">
+      <div class="row">
+        <div class="col-md-5">
+          <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-success text-white fw-bold">
+              <i class="fas fa-heart"></i> İlgi Alanları
+            </div>
+            <div class="card-body">
+              <form
+                action="/admin/add_hobby"
+                method="POST"
+                class="mb-4 border-bottom pb-4"
+              >
+                <label class="small text-muted mb-1"
+                  >Yeni İlgi Alanı Ekle</label
+                >
+                <div class="input-group">
+                  <input
+                    type="text"
+                    name="hobby_name"
+                    class="form-control"
+                    placeholder="Örn: Dağcılık"
+                    required
+                  />
+                  <button class="btn btn-success" type="submit">
+                    <i class="fas fa-plus"></i>
+                  </button>
+                </div>
+              </form>
+
+              <h6 class="fw-bold text-muted mb-2">
+                Mevcut Listesi ({{ hobbies|length }})
+              </h6>
+              <ul
+                class="list-group"
+                style="max-height: 300px; overflow-y: auto"
+              >
+                {% for hobby in hobbies %}
+                <li
+                  class="list-group-item d-flex justify-content-between align-items-center py-2"
+                >
+                  {{ hobby[1] }}
+                  <a
+                    href="/admin/delete_hobby/{{ hobby[0] }}"
+                    class="text-danger"
+                    onclick="return confirm('Silmek istediğine emin misin?')"
+                    title="Sil"
+                  >
+                    <i class="fas fa-trash-alt"></i>
+                  </a>
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-7">
+          <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-warning text-dark fw-bold">
+              <i class="fas fa-medal"></i> Rozetler
+            </div>
+            <div class="card-body">
+              <form
+                action="/admin/add_badge"
+                method="POST"
+                class="mb-4 border-bottom pb-4"
+              >
+                <label class="small text-muted mb-2">Yeni Rozet Tanımla</label>
+                <div class="row g-2">
+                  <div class="col-md-6">
+                    <input
+                      type="text"
+                      name="badge_name"
+                      class="form-control form-control-sm"
+                      placeholder="Rozet Adı (Örn: Usta)"
+                      required
+                    />
+                  </div>
+                  <div class="col-md-6">
+                    <input
+                      type="text"
+                      name="icon_url"
+                      class="form-control form-control-sm"
+                      placeholder="FontAwesome (fas fa-star)"
+                      required
+                    />
+                  </div>
+                  <div class="col-md-8">
+                    <input
+                      type="text"
+                      name="description"
+                      class="form-control form-control-sm"
+                      placeholder="Açıklama"
+                      required
+                    />
+                  </div>
+                  <div class="col-md-4">
+                    <input
+                      type="number"
+                      name="required_value"
+                      class="form-control form-control-sm"
+                      placeholder="Puan Hedefi"
+                      required
+                    />
+                  </div>
+                  <div class="col-12 mt-2">
+                    <button
+                      class="btn btn-warning w-100 btn-sm fw-bold"
+                      type="submit"
+                    >
+                      <i class="fas fa-plus-circle"></i> Rozet Oluştur
+                    </button>
+                  </div>
+                </div>
+              </form>
+
+              <h6 class="fw-bold text-muted mb-2">
+                Tanımlı Rozetler ({{ badges|length }})
+              </h6>
+              <div class="table-responsive" style="max-height: 300px">
+                <table class="table table-sm table-hover align-middle">
+                  <thead class="table-light">
+                    <tr>
+                      <th>İkon</th>
+                      <th>Ad</th>
+                      <th>Hedef</th>
+                      <th>İşlem</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for badge in badges %}
+                    <tr>
+                      <td class="text-center text-warning">
+                        <i class="{{ badge[3] }}"></i>
+                      </td>
+                      <td class="fw-bold">{{ badge[1] }}</td>
+                      <td>
+                        <span class="badge bg-light text-dark border"
+                          >{{ badge[5] }} Puan</span
+                        >
+                      </td>
+                      <td>
+                        <a
+                          href="/admin/delete_badge/{{ badge[0] }}"
+                          class="btn btn-sm btn-outline-danger py-0"
+                          onclick="return confirm('Silmek istediğine emin misin?')"
+                        >
+                          Sil
+                        </a>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

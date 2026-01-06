@@ -1,102 +1,185 @@
-{% extends 'base.html' %}
-
-{% block content %}
+{% extends 'base.html' %} {% block content %}
 <div class="row">
-    <div class="col-md-7">
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-body">
-                <h4 class="fw-bold mb-3"><i class="fas fa-search"></i> Arkadaş Ara</h4>
-                <form method="POST" class="d-flex gap-2">
-                    <input type="text" name="search_query" class="form-control" placeholder="Kullanıcı adı girin..." required>
-                    <button type="submit" class="btn btn-primary">Ara</button>
-                </form>
+  <div class="col-md-7">
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-body">
+        <h4 class="fw-bold mb-3"><i class="fas fa-search"></i> Arkadaş Ara</h4>
 
-                {% if search_results %}
-                <div class="mt-4">
-                    <h6 class="text-muted">Arama Sonuçları</h6>
-                    <ul class="list-group">
-                        {% for user in search_results %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div class="d-flex align-items-center">
-                                <img src="https://ui-avatars.com/api/?name={{ user[1] }}&background=random" class="rounded-circle me-3" width="40">
-                                <span class="fw-bold">{{ user[1] }}</span>
-                            </div>
-                            <a href="/add_friend/{{ user[0] }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-user-plus"></i> Ekle</a>
-                        </li>
-                        {% endfor %}
-                    </ul>
+        {% if suggestions and not search_results %}
+        <div
+          class="mb-4 p-3 bg-light rounded border border-warning border-opacity-25"
+        >
+          <h6 class="text-dark fw-bold small mb-3">
+            <i class="fas fa-hands-helping text-warning"></i> YENİ
+            KULLANICILARLA TANIŞ (ÖNERİLENLER)
+          </h6>
+          <div class="row">
+            {% for user in suggestions %}
+            <div class="col-md-6 mb-2">
+              <div
+                class="d-flex align-items-center justify-content-between bg-white p-2 rounded shadow-sm"
+              >
+                <div class="d-flex align-items-center">
+                  <img
+                    src="{{ user[2] }}"
+                    class="rounded-circle me-2"
+                    width="30"
+                    height="30"
+                  />
+                  <span class="small fw-bold">{{ user[1] }}</span>
                 </div>
-                {% endif %}
+                <a
+                  href="/add_friend/{{ user[0] }}"
+                  class="btn btn-sm btn-outline-primary py-0"
+                  style="font-size: 0.7rem"
+                  >Ekle</a
+                >
+              </div>
             </div>
-        </div>
-
-        {% if pending_requests %}
-        <div class="card shadow-sm border-0 mb-4 bg-warning bg-opacity-10">
-            <div class="card-body">
-                <h5 class="fw-bold text-dark"><i class="fas fa-user-clock"></i> Bekleyen İstekler</h5>
-                <ul class="list-group list-group-flush bg-transparent">
-                    {% for req in pending_requests %}
-                    <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center">
-                        <div class="d-flex align-items-center">
-                            <img src="https://ui-avatars.com/api/?name={{ req[1] }}&background=random" class="rounded-circle me-3" width="40">
-                            <div>
-                                <span class="fw-bold d-block">{{ req[1] }}</span>
-                                <small class="text-muted">Arkadaş olmak istiyor</small>
-                            </div>
-                        </div>
-                        <a href="/accept_friend/{{ req[0] }}" class="btn btn-sm btn-success fw-bold">Kabul Et</a>
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
+            {% endfor %}
+          </div>
         </div>
         {% endif %}
-    </div>
 
-    <div class="col-md-5">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white py-3">
-                <h5 class="mb-0 fw-bold"><i class="fas fa-users text-success"></i> Arkadaşların</h5>
-            </div>
-            
-            <div class="card-body p-0">
-                {% if my_friends %}
-                    <ul class="list-group list-group-flush">
-                        {% for friend in my_friends %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center p-3">
-                            
-                            <div class="d-flex align-items-center">
-                                <a href="/profile/{{ friend[2] }}">
-                                    <img src="{{ friend[1] or 'https://ui-avatars.com/api/?name=' ~ friend[0] }}" class="rounded-circle me-3" width="50" height="50" style="object-fit:cover;">
-                                </a>
-                                <div>
-                                    <a href="/profile/{{ friend[2] }}" class="text-dark fw-bold text-decoration-none d-block">
-                                        {{ friend[0] }}
-                                    </a>
-                                    <small class="text-muted"><i class="fas fa-circle text-success" style="font-size: 0.5rem;"></i> Arkadaş</small>
-                                </div>
-                            </div>
+        <form method="POST" class="d-flex gap-2">
+          <input
+            type="text"
+            name="search_query"
+            class="form-control"
+            placeholder="Kullanıcı adı girin..."
+            required
+          />
+          <button type="submit" class="btn btn-primary">Ara</button>
+        </form>
 
-                            <div>
-                                <a href="/remove_friend/{{ friend[2] }}" 
-                                   class="btn btn-outline-danger btn-sm"
-                                   onclick="return confirm('{{ friend[0] }} adlı kişiyi arkadaşlıktan çıkarmak istediğine emin misin?');"
-                                   title="Arkadaşlıktan Çıkar">
-                                    <i class="fas fa-user-minus"></i>
-                                </a>
-                            </div>
-                            
-                        </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <div class="text-center py-5">
-                        <i class="fas fa-user-friends fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">Henüz arkadaşın yok. Yukarıdan arama yapıp ekleyebilirsin!</p>
-                    </div>
-                {% endif %}
-            </div>
+        {% if search_results %}
+        <div class="mt-4">
+          <h6 class="text-muted">Arama Sonuçları</h6>
+          <ul class="list-group">
+            {% for user in search_results %}
+            <li
+              class="list-group-item d-flex justify-content-between align-items-center"
+            >
+              <div class="d-flex align-items-center">
+                <img
+                  src="https://ui-avatars.com/api/?name={{ user[1] }}&background=random"
+                  class="rounded-circle me-3"
+                  width="40"
+                />
+                <span class="fw-bold">{{ user[1] }}</span>
+              </div>
+              <a
+                href="/add_friend/{{ user[0] }}"
+                class="btn btn-sm btn-outline-primary"
+                ><i class="fas fa-user-plus"></i> Ekle</a
+              >
+            </li>
+            {% endfor %}
+          </ul>
         </div>
+        {% endif %}
+      </div>
     </div>
+
+    {% if pending_requests %}
+    <div class="card shadow-sm border-0 mb-4 bg-warning bg-opacity-10">
+      <div class="card-body">
+        <h5 class="fw-bold text-dark">
+          <i class="fas fa-user-clock"></i> Bekleyen İstekler
+        </h5>
+        <ul class="list-group list-group-flush bg-transparent">
+          {% for req in pending_requests %}
+          <li
+            class="list-group-item bg-transparent d-flex justify-content-between align-items-center"
+          >
+            <div class="d-flex align-items-center">
+              <img
+                src="https://ui-avatars.com/api/?name={{ req[1] }}&background=random"
+                class="rounded-circle me-3"
+                width="40"
+              />
+              <div>
+                <span class="fw-bold d-block">{{ req[1] }}</span>
+                <small class="text-muted">Arkadaş olmak istiyor</small>
+              </div>
+            </div>
+            <a
+              href="/accept_friend/{{ req[0] }}"
+              class="btn btn-sm btn-success fw-bold"
+              >Kabul Et</a
+            >
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="col-md-5">
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-white py-3">
+        <h5 class="mb-0 fw-bold">
+          <i class="fas fa-users text-success"></i> Arkadaşların
+        </h5>
+      </div>
+
+      <div class="card-body p-0">
+        {% if my_friends %}
+        <ul class="list-group list-group-flush">
+          {% for friend in my_friends %}
+          <li
+            class="list-group-item d-flex justify-content-between align-items-center p-3"
+          >
+            <div class="d-flex align-items-center">
+              <a href="/profile/{{ friend[2] }}">
+                <img
+                  src="{{ friend[1] or 'https://ui-avatars.com/api/?name=' ~ friend[0] }}"
+                  class="rounded-circle me-3"
+                  width="50"
+                  height="50"
+                  style="object-fit: cover"
+                />
+              </a>
+              <div>
+                <a
+                  href="/profile/{{ friend[2] }}"
+                  class="text-dark fw-bold text-decoration-none d-block"
+                >
+                  {{ friend[0] }}
+                </a>
+                <small class="text-muted"
+                  ><i
+                    class="fas fa-circle text-success"
+                    style="font-size: 0.5rem"
+                  ></i>
+                  Arkadaş</small
+                >
+              </div>
+            </div>
+            <div>
+              <a
+                href="/remove_friend/{{ friend[2] }}"
+                class="btn btn-outline-danger btn-sm"
+                onclick="return confirm('{{ friend[0] }} adlı kişiyi arkadaşlıktan çıkarmak istediğine emin misin?');"
+                title="Arkadaşlıktan Çıkar"
+              >
+                <i class="fas fa-user-minus"></i>
+              </a>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="text-center py-5">
+          <i class="fas fa-user-friends fa-3x text-muted mb-3"></i>
+          <p class="text-muted">
+            Henüz arkadaşın yok. Yukarıdan arama yapıp ekleyebilirsin!
+          </p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
