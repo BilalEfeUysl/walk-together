@@ -1,71 +1,70 @@
-{% extends 'base.html' %}
-
-{% block content %}
+{% extends 'base.html' %} {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card shadow-sm border-0">
-            
-            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h4 class="mb-0 fw-bold text-primary">
-                    <i class="fas fa-bell"></i> Bildirimler
-                </h4>
-                
-                {% if notifications %}
-                <a href="/delete_all_notifications" 
-                   class="btn btn-outline-danger btn-sm"
-                   onclick="return confirm('Tüm bildirimleri silmek istediğine emin misin?');">
-                    <i class="fas fa-trash-alt"></i> Tümünü Temizle
-                </a>
-                {% endif %}
-            </div>
+  <div class="col-md-8">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="fw-bold">
+        <i class="fas fa-bell text-warning"></i> Bildirim Geçmişi
+      </h2>
 
-            <div class="card-body p-0">
-                {% if notifications %}
-                    <ul class="list-group list-group-flush">
-                        {% for notif in notifications %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center p-3 {% if not notif[2] %}bg-light{% endif %}">
-                            
-                            <div class="d-flex align-items-start">
-                                <div class="me-3 mt-1">
-                                    {% if 'arkadaş' in notif[0] %}
-                                        <i class="fas fa-user-plus text-success fa-lg"></i>
-                                    {% elif 'iptal' in notif[0] %}
-                                        <i class="fas fa-exclamation-circle text-danger fa-lg"></i>
-                                    {% else %}
-                                        <i class="fas fa-info-circle text-primary fa-lg"></i>
-                                    {% endif %}
-                                </div>
-                                <div>
-                                    <p class="mb-1 text-dark">{{ notif[0] }}</p>
-                                    <small class="text-muted">
-                                        <i class="far fa-clock"></i> {{ notif[1].strftime('%d.%m.%Y %H:%M') }}
-                                    </small>
-                                </div>
-                            </div>
+      <div class="btn-group">
+        <a
+          href="{{ url_for('main.mark_all_read') }}"
+          class="btn btn-outline-primary btn-sm"
+        >
+          <i class="fas fa-check-double"></i> Okundu Yap
+        </a>
 
-                            <div class="ms-3">
-                                <a href="/delete_notification/{{ notif[3] }}" 
-                                   class="btn btn-sm text-muted hover-danger" 
-                                   title="Bildirimi Sil">
-                                    <i class="fas fa-times"></i>
-                                </a>
-                            </div>
-
-                        </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <div class="text-center py-5">
-                        <i class="far fa-bell-slash fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">Hiç yeni bildirimin yok.</p>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
+        <a
+          href="{{ url_for('main.delete_all_notifications') }}"
+          class="btn btn-outline-danger btn-sm"
+          onclick="return confirm('Tüm bildirimleri silmek istediğine emin misin?')"
+        >
+          <i class="fas fa-trash-alt"></i> Temizle
+        </a>
+      </div>
     </div>
-</div>
 
-<style>
-    .hover-danger:hover { color: #dc3545 !important; }
-</style>
+    <div class="card shadow-sm border-0">
+      <div class="list-group list-group-flush">
+        {% if notifications %} {% for n in notifications %}
+        <a
+          href="{{ n[4] if n[4] else '#' }}"
+          class="list-group-item list-group-item-action p-3 d-flex justify-content-between align-items-center {{ 'bg-body border-start border-4 border-warning' if not n[2] else 'opacity-75' }}"
+        >
+          <div>
+            <div class="mb-1 {{ 'fw-bold' if not n[2] else '' }}">
+              {{ n[0] }} {% if not n[2] %}
+              <span
+                class="badge bg-warning text-dark ms-2"
+                style="font-size: 0.7em"
+                >YENİ</span
+              >
+              {% endif %}
+            </div>
+            <small class="text-muted"
+              ><i class="far fa-clock"></i> {{ n[1].strftime('%d.%m.%Y %H:%M')
+              }}</small
+            >
+          </div>
+
+          <object>
+            <a
+              href="{{ url_for('main.delete_notification', notif_id=n[3]) }}"
+              class="btn btn-sm text-danger z-3 position-relative"
+              title="Sil"
+            >
+              <i class="fas fa-times"></i>
+            </a>
+          </object>
+        </a>
+        {% endfor %} {% else %}
+        <div class="p-5 text-center text-muted">
+          <i class="fas fa-bell-slash fa-3x mb-3"></i>
+          <p class="mb-0">Henüz bir bildirimin yok.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

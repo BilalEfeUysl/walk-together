@@ -1,66 +1,100 @@
-{% extends 'base.html' %}
-
-{% block content %}
+{% extends 'base.html' %} {% block content %}
 <div class="row justify-content-center py-5">
-    <div class="col-md-6">
-        <div class="card border-0 shadow-lg">
-            <div class="card-body p-5">
-                <div class="text-center mb-4">
-                    <h2 class="fw-bold text-success">Aramıza Katıl 🌿</h2>
-                    <p class="text-muted">Profilini oluştur ve keşfetmeye başla.</p>
-                </div>
-
-                <form method="POST" action="/register">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Kullanıcı Adı</label>
-                            <input type="text" class="form-control bg-light" name="username" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Yaş</label>
-                            <input type="number" class="form-control bg-light" name="age" placeholder="Örn: 24">
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">E-Posta</label>
-                        <input type="email" class="form-control bg-light" name="email" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Şifre</label>
-                        <input type="password" class="form-control bg-light" name="password" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Kendinden Bahset (Bio)</label>
-                        <textarea class="form-control bg-light" name="bio" rows="3" placeholder="Doğa yürüyüşlerini severim..."></textarea>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label fw-bold d-block">İlgi Alanların</label>
-                        <div class="d-flex flex-wrap gap-3">
-                            {% for hobby in hobbies %}
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="hobbies" value="{{ hobby[0] }}" id="h_{{ hobby[0] }}">
-                                <label class="form-check-label" for="h_{{ hobby[0] }}">
-                                    {{ hobby[1] }}
-                                </label>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-success w-100 py-3 rounded-pill fw-bold shadow-sm">
-                        Kaydı Tamamla
-                    </button>
-                </form>
-                
-                <div class="text-center mt-3">
-                    <a href="/login" class="text-decoration-none">Zaten hesabın var mı? Giriş Yap</a>
-                </div>
-            </div>
+  <div class="col-md-6">
+    <div class="card border-0 shadow-lg">
+      <div class="card-body p-5">
+        <div class="text-center mb-4">
+          <h2 class="fw-bold text-success">Aramıza Katıl 🌿</h2>
+          <p class="text-muted">Profilini oluştur ve keşfetmeye başla.</p>
         </div>
+
+        <form method="POST" action="{{ url_for('auth.register') }}">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Kullanıcı Adı</label>
+              <input
+                type="text"
+                class="form-control bg-light"
+                name="username"
+                required
+              />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Yaş</label>
+              <input
+                type="number"
+                class="form-control bg-light"
+                name="age"
+                placeholder="Örn: 24"
+              />
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">E-Posta</label>
+            <input
+              type="email"
+              class="form-control bg-light"
+              name="email"
+              required
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Şifre</label>
+            <input
+              type="password"
+              class="form-control bg-light"
+              name="password"
+              required
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Kendinden Bahset (Bio)</label>
+            <textarea
+              class="form-control bg-light"
+              name="bio"
+              rows="3"
+              placeholder="Doğa yürüyüşlerini severim..."
+            ></textarea>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-bold d-block">İlgi Alanların</label>
+            <div class="d-flex flex-wrap gap-3">
+              {% for hobby in hobbies %}
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  name="hobbies"
+                  value="{{ hobby[0] }}"
+                  id="h_{{ hobby[0] }}"
+                />
+                <label class="form-check-label" for="h_{{ hobby[0] }}">
+                  {{ hobby[1] }}
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-success w-100 py-3 rounded-pill fw-bold shadow-sm"
+          >
+            Kaydı Tamamla
+          </button>
+        </form>
+
+        <div class="text-center mt-3">
+          <a href="{{ url_for('auth.login') }}" class="text-decoration-none"
+            >Zaten hesabın var mı? Giriş Yap</a
+          >
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %}

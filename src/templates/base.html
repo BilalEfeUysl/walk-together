@@ -76,6 +76,7 @@
                 </span>
                 {% endif %}
               </a>
+
               <ul
                 class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-3"
                 style="width: 340px; border-radius: 12px"
@@ -84,47 +85,48 @@
                   class="dropdown-header fw-bold py-2 border-bottom d-flex justify-content-between align-items-center"
                 >
                   <span>Bildirimler</span>
-                  {% if unread_count > 0 %}
-                  <a href="/notifications" class="text-decoration-none small"
-                    >Tümünü Gör</a
-                  >
-                  {% endif %}
+                  {% if unread_count > 0 %} {% endif %}
                 </li>
 
                 <div style="max-height: 300px; overflow-y: auto">
                   {% for notif in notifications %}
                   <li class="position-relative border-bottom">
-                    <div
-                      class="d-flex align-items-start p-3 bg-white hover-bg-light"
+                    <a
+                      href="{{ notif[4] if notif[4] else '#' }}"
+                      class="text-decoration-none"
                     >
-                      {% if not notif[2] %}
                       <div
-                        class="mt-2 bg-primary rounded-circle me-2"
-                        style="width: 8px; height: 8px; flex-shrink: 0"
-                      ></div>
-                      {% endif %}
-
-                      <div class="flex-grow-1 pe-4">
-                        <p
-                          class="mb-1 text-wrap text-dark lh-sm"
-                          style="font-size: 0.9rem"
-                        >
-                          {{ notif[0] }}
-                        </p>
-                        <small class="text-muted" style="font-size: 0.75rem"
-                          >{{ notif[1].strftime('%d.%m %H:%M') }}</small
-                        >
-                      </div>
-
-                      <a
-                        href="/delete_notification/{{ notif[3] }}"
-                        class="text-danger position-absolute top-0 end-0 m-2 p-1 text-decoration-none"
-                        title="Sil"
-                        style="z-index: 10"
+                        class="d-flex align-items-start p-3 bg-white hover-bg-light"
                       >
-                        <i class="fas fa-times"></i>
-                      </a>
-                    </div>
+                        {% if not notif[2] %}
+                        <div
+                          class="mt-2 bg-primary rounded-circle me-2"
+                          style="width: 8px; height: 8px; flex-shrink: 0"
+                        ></div>
+                        {% endif %}
+
+                        <div class="flex-grow-1 pe-4">
+                          <p
+                            class="mb-1 text-wrap text-dark lh-sm"
+                            style="font-size: 0.9rem"
+                          >
+                            {{ notif[0] }}
+                          </p>
+                          <small class="text-muted" style="font-size: 0.75rem"
+                            >{{ notif[1].strftime('%d.%m %H:%M') }}</small
+                          >
+                        </div>
+                      </div>
+                    </a>
+
+                    <a
+                      href="/delete_notification/{{ notif[3] }}"
+                      class="text-danger position-absolute top-0 end-0 m-2 p-1 text-decoration-none"
+                      title="Sil"
+                      style="z-index: 10"
+                    >
+                      <i class="fas fa-times"></i>
+                    </a>
                   </li>
                   {% else %}
                   <li class="p-5 text-center text-muted">
@@ -139,8 +141,9 @@
                   <a
                     class="dropdown-item text-center small fw-bold text-primary py-2 border-top bg-light rounded-bottom"
                     href="/notifications"
-                    >Bildirim Geçmişine Git</a
                   >
+                    Tüm Bildirimleri Yönet
+                  </a>
                 </li>
               </ul>
             </li>

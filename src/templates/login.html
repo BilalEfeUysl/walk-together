@@ -1,45 +1,70 @@
-{% extends 'base.html' %}
-
-{% block content %}
-<div class="row justify-content-center align-items-center" style="min-height: 60vh;">
-    <div class="col-md-5">
-        <div class="card border-0 shadow-lg">
-            <div class="card-body p-5">
-                <div class="text-center mb-4">
-                    <h2 class="fw-bold text-primary">Tekrar Hoşgeldin! 👋</h2>
-                    <p class="text-muted">Walk Together hesabına giriş yap.</p>
-                </div>
-
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
-
-                <form method="POST" action="/login">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Kullanıcı Adı</label>
-                        <input type="text" class="form-control form-control-lg bg-light" name="username" required>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label fw-bold">Şifre</label>
-                        <input type="password" class="form-control form-control-lg bg-light" name="password" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold fs-5 shadow-sm">
-                        Giriş Yap
-                    </button>
-                </form>
-
-                <div class="text-center mt-4">
-                    <small class="text-muted">Hesabın yok mu? <a href="/register" class="fw-bold text-primary text-decoration-none">Hemen Kayıt Ol</a></small>
-                </div>
-            </div>
+{% extends 'base.html' %} {% block content %}
+<div
+  class="row justify-content-center align-items-center"
+  style="min-height: 60vh"
+>
+  <div class="col-md-5">
+    <div class="card border-0 shadow-lg">
+      <div class="card-body p-5">
+        <div class="text-center mb-4">
+          <h2 class="fw-bold text-primary">Tekrar Hoşgeldin! 👋</h2>
+          <p class="text-muted">Walk Together hesabına giriş yap.</p>
         </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %} {% if
+        messages %} {% for category, message in messages %}
+        <div
+          class="alert alert-{{ category }} alert-dismissible fade show"
+          role="alert"
+        >
+          {{ message }}
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+          ></button>
+        </div>
+        {% endfor %} {% endif %} {% endwith %}
+
+        <form method="POST" action="{{ url_for('auth.login') }}">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Kullanıcı Adı</label>
+            <input
+              type="text"
+              class="form-control form-control-lg bg-light"
+              name="username"
+              required
+            />
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-bold">Şifre</label>
+            <input
+              type="password"
+              class="form-control form-control-lg bg-light"
+              name="password"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            class="btn btn-primary w-100 py-3 rounded-pill fw-bold fs-5 shadow-sm"
+          >
+            Giriş Yap
+          </button>
+        </form>
+
+        <div class="text-center mt-4">
+          <small class="text-muted"
+            >Hesabın yok mu?
+            <a
+              href="{{ url_for('auth.register') }}"
+              class="fw-bold text-primary text-decoration-none"
+              >Hemen Kayıt Ol</a
+            ></small
+          >
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %}

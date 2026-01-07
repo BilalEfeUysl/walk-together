@@ -93,7 +93,7 @@
                 <td>
                   {% if u[3] != 'admin' %}
                   <a
-                    href="/admin/delete_user/{{ u[0] }}"
+                    href="{{ url_for('admin.delete_user', user_id=u[0]) }}"
                     class="btn btn-sm btn-outline-danger"
                     onclick="return confirm('Bu kullanıcıyı ve tüm verilerini silmek istediğine emin misin?');"
                   >
@@ -126,7 +126,7 @@
                   >{{ r[1] }}</span
                 >
                 <a
-                  href="/admin/delete_content/route/{{ r[0] }}"
+                  href="{{ url_for('admin.delete_content', type='route', id=r[0]) }}"
                   class="btn btn-sm btn-danger py-0"
                   onclick="return confirm('Sil?')"
                   >Sil</a
@@ -154,7 +154,7 @@
                   >
                 </div>
                 <a
-                  href="/admin/delete_content/event/{{ e[0] }}"
+                  href="{{ url_for('admin.delete_content', type='event', id=e[0]) }}"
                   class="btn btn-sm btn-danger py-0"
                   onclick="return confirm('Sil?')"
                   >Sil</a
@@ -176,7 +176,7 @@
             </div>
             <div class="card-body">
               <form
-                action="/admin/add_hobby"
+                action="{{ url_for('admin.add_hobby') }}"
                 method="POST"
                 class="mb-4 border-bottom pb-4"
               >
@@ -210,7 +210,7 @@
                 >
                   {{ hobby[1] }}
                   <a
-                    href="/admin/delete_hobby/{{ hobby[0] }}"
+                    href="{{ url_for('admin.delete_hobby', hobby_id=hobby[0]) }}"
                     class="text-danger"
                     onclick="return confirm('Silmek istediğine emin misin?')"
                     title="Sil"
@@ -231,7 +231,7 @@
             </div>
             <div class="card-body">
               <form
-                action="/admin/add_badge"
+                action="{{ url_for('admin.add_badge') }}"
                 method="POST"
                 class="mb-4 border-bottom pb-4"
               >
@@ -311,7 +311,7 @@
                       </td>
                       <td>
                         <a
-                          href="/admin/delete_badge/{{ badge[0] }}"
+                          href="{{ url_for('admin.delete_badge', badge_id=badge[0]) }}"
                           class="btn btn-sm btn-outline-danger py-0"
                           onclick="return confirm('Silmek istediğine emin misin?')"
                         >

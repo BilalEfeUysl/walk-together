@@ -175,8 +175,9 @@ BEGIN
                 
                 INSERT INTO user_badges (user_id, badge_id) VALUES (NEW.user_id, target_badge.badge_id);
                 
-                INSERT INTO notifications (user_id, message) 
-                VALUES (NEW.user_id, 'Tebrikler! Yeni bir rozet kazandınız: ' || target_badge.badge_name);
+                -- [GÜNCELLENDİ] related_link eklendi (/profile/USER_ID)
+                INSERT INTO notifications (user_id, message, related_link) 
+                VALUES (NEW.user_id, 'Tebrikler! Yeni bir rozet kazandınız: ' || target_badge.badge_name, '/profile/' || NEW.user_id);
                 
             END IF;
         END IF;
@@ -209,9 +210,9 @@ BEGIN
         UPDATE users SET total_points = total_points + points_to_add
         WHERE user_id = NEW.user_id;
 
-        -- [YENİ] Bildirim gönder
-        INSERT INTO notifications (user_id, message) 
-        VALUES (NEW.user_id, 'Tebrikler! Etkinlik tamamlandı ve ' || points_to_add || ' puan kazandın! 🏆');
+        -- [GÜNCELLENDİ] related_link eklendi (/leaderboard)
+        INSERT INTO notifications (user_id, message, related_link) 
+        VALUES (NEW.user_id, 'Tebrikler! Etkinlik tamamlandı ve ' || points_to_add || ' puan kazandın! 🏆', '/leaderboard');
         
     END IF;
     RETURN NEW;

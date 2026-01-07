@@ -191,3 +191,5 @@ ALTER TABLE events ADD COLUMN title VARCHAR(150);
 
 -- Mevcut kayıtların başlığı boş kalmasın diye açıklamayı başlığa kopyala (Geçici çözüm)
 UPDATE events SET title = SUBSTRING(description, 1, 50) WHERE title IS NULL;
+
+ALTER TABLE notifications ADD COLUMN related_link VARCHAR;
