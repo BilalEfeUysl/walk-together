@@ -1,11 +1,23 @@
+buralar fifa bence
 
-belli rozetlerin olması falan lazım 
+kayıt ol sayfasında ilgi alanlarında emojiler yok sadece ağaç var.
+
+rota arama filtremele mantığında sıkıntılar var Aydos yazıp filtre yazma aynı anda olmuyor.
+manuel yazınca oluyor arama. o yüzden kolay orta zor tuşu direkt aramamalı sadece textleri doldurmalı arama tuşuna user basmalı. a yazınca çalışıyor ama Aydosda çalışmıyor. başka şeyleri denemedim.
+
+create kısmında kategori kısmında sagolama olmuş ok işaretinde
+
+kulüp sayfasında görselin urlesini koyuyor.
+
+arkadaşlık isteğini reddeince bir daha istek atılmıyor. kalabilir aslında bu.
+
+çandan ilgili sayfaya gidince o bildirimi okundu yapsın.
 
 
-profil kısmında oluşturduğum rotalar kısmı bulunsun bide bu rotaları istersem silebiliyim 
-
-
-admin kısmı yapılacak
-
-
-
+BURA FİFA DEĞİL PES
+!!!!!!!
+kurallar txt ye göre projeyi bi kontrol ettir. geminiye. 
+ayrıca eksik, fazlalık, gereksiz bir yer var mı diye sor. 
+sqlde olup arayüzde olmayan bir şey var mı sor. 
+her şey tamamsa tamamdır.
+!!!!!!!!

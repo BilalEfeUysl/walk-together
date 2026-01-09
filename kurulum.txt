@@ -1,0 +1,51 @@
+PROJE KURULUM ADIMLARI
+=========================================
+
+1. Sanal Ortam (Virtual Environment) Oluştur
+-----------------------------------------
+
+python -m venv venv
+
+
+2. Sanal Ortamı Aktif Et
+-----------------------------------------
+
+> Windows için:
+venv\Scripts\activate
+
+> Mac / Linux için:
+source venv/bin/activate
+
+(Not: Terminalin başında (venv) yazısını görmelisin.)
+
+
+3. Gerekli Kütüphaneleri Yükle
+-----------------------------------------
+
+pip install -r requirements.txt
+
+
+4. Veritabanını Hazırla (PostgreSQL)
+-----------------------------------------
+1. PostgreSQL'de 'walktogether' adında boş bir veritabanı oluştur.
+2. Database klasöründeki sql kodlarını çalıştır.
+3. .env dosyası oluşturup veritabanı şifreni ve bilgilerini gir:
+
+DB_HOST=localhost
+DB_NAME=walktogether
+DB_USER=postgres
+DB_PASS= ->şifren
+DB_PORT=5432
+SECRET_KEY=d7c3b9f8e4a1c5d6e2f8a9b0c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2
+
+
+5. Projeyi Başlat
+-----------------------------------------
+1.
+> Windows için:
+venv\Scripts\activate
+
+> Mac / Linux için:
+source venv/bin/activate
+
+2. python src/app.py 
