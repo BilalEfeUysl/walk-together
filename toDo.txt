@@ -1,7 +1,5 @@
 buralar fifa bence
 
-kayıt ol sayfasında ilgi alanlarında emojiler yok sadece ağaç var.
-
 rota arama filtremele mantığında sıkıntılar var Aydos yazıp filtre yazma aynı anda olmuyor.
 manuel yazınca oluyor arama. o yüzden kolay orta zor tuşu direkt aramamalı sadece textleri doldurmalı arama tuşuna user basmalı. a yazınca çalışıyor ama Aydosda çalışmıyor. başka şeyleri denemedim.
 

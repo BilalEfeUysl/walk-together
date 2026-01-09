@@ -1,4 +1,9 @@
 {% extends "base.html" %} {% block content %}
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+/>
+
 <div
   class="min-h-[calc(100vh-5rem)] flex w-full flex-col lg:flex-row overflow-hidden"
 >
@@ -184,7 +189,7 @@
               <div
                 class="flex items-center gap-2 rounded-full border border-gray-200 dark:border-gray-700 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 bg-white dark:bg-gray-800 hover:border-primary/50 peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary peer-checked:shadow-md"
               >
-                <span class="material-symbols-outlined text-[18px]">park</span>
+                <i class="{{ hobby[2] }} text-[16px]"></i>
                 {{ hobby[1] }}
               </div>
             </label>
