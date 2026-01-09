@@ -1,104 +1,388 @@
-{% extends 'base.html' %}
+{% extends "base.html" %} {% block content %}
+<div class="max-w-7xl mx-auto w-full px-6 py-8 min-h-screen">
+  <div class="flex flex-col gap-6 mb-8">
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div class="flex flex-col gap-3">
+        <h1
+          class="text-4xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-tight"
+        >
+          Yeni Bir
+          <span class="text-primary relative inline-block">Macera</span> Bul
+        </h1>
+        <p
+          class="text-lg text-slate-600 dark:text-slate-400 max-w-xl font-medium"
+        >
+          Yerel yürüyüyüşleri keşfedin, patikalarda topluluğa katılın.
+        </p>
+      </div>
 
-{% block content %}
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
-    
-    <div class="d-flex align-items-center">
-        <h2 class="d-inline-block me-3 mb-0">📅 Etkinlikler</h2>
-        <a href="/create" class="btn btn-primary rounded-pill shadow-sm">
-            <i class="fas fa-plus"></i> Oluştur
-        </a>
+      <a
+        href="{{ url_for('main.create') }}?type=event"
+        class="hidden md:flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-dark text-white rounded-2xl font-bold transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-1 active:translate-y-0"
+      >
+        <span class="material-symbols-outlined">add_circle</span>
+        Etkinlik Oluştur
+      </a>
     </div>
-    
-    <div class="d-flex gap-2 flex-grow-1 justify-content-end" style="max-width: 600px;">
-        
-        <form action="/events" method="GET" class="d-flex flex-grow-1">
-            <div class="input-group">
-                <span class="input-group-text bg-white border-end-0 rounded-start-pill ps-3">
-                    <i class="fas fa-search text-muted"></i>
-                </span>
-                <input type="text" name="q" class="form-control border-start-0 rounded-end-pill" 
-                       placeholder="Etkinlik veya rota adı ara..." value="{{ search_query }}">
-            </div>
-            
-            {% if request.args.get('category') %}
-            <input type="hidden" name="category" value="{{ request.args.get('category') }}">
-            {% endif %}
-        </form>
 
-        <div class="dropdown">
-            <button class="btn btn-secondary dropdown-toggle rounded-pill px-3" type="button" data-bs-toggle="dropdown">
-                <i class="fas fa-filter"></i> Filtrele
+    <div class="flex flex-col gap-4">
+      <form
+        id="filterForm"
+        action="{{ url_for('main.events') }}"
+        method="GET"
+        class="flex flex-col gap-4"
+      >
+        <input
+          type="hidden"
+          name="time"
+          id="inputTime"
+          value="{{ current_time_filter }}"
+        />
+        <input
+          type="hidden"
+          name="category"
+          id="inputCategory"
+          value="{{ request.args.get('category', '') }}"
+        />
+
+        <div
+          class="p-2 bg-white dark:bg-[#1e2621] rounded-2xl shadow-sm border border-slate-200 dark:border-[#2a362f] flex flex-col md:flex-row gap-2"
+        >
+          <div
+            class="flex-1 flex items-center px-4 bg-slate-50 dark:bg-[#2a362f] rounded-xl h-12 md:h-14 group focus-within:ring-2 focus-within:ring-primary/20 transition-all border border-transparent focus-within:border-primary/50"
+          >
+            <span
+              class="material-symbols-outlined text-slate-400 group-focus-within:text-primary"
+              >search</span
+            >
+            <input
+              name="q"
+              value="{{ search_query }}"
+              class="w-full bg-transparent border-none focus:ring-0 text-slate-900 dark:text-white placeholder-slate-400 text-base ml-2"
+              placeholder="Etkinlik adı, rota veya konum ara..."
+              type="text"
+            />
+          </div>
+          <div class="flex gap-2">
+            <button
+              type="button"
+              onclick="toggleFilters()"
+              class="flex-1 md:flex-none h-12 md:h-14 px-6 flex items-center justify-center gap-2 bg-white dark:bg-[#1e2621] border border-slate-200 dark:border-[#36423b] rounded-xl text-slate-700 dark:text-white font-bold hover:bg-slate-50 dark:hover:bg-[#2a362f] transition-colors active:scale-95"
+            >
+              <span class="material-symbols-outlined">tune</span>
+              <span class="hidden sm:inline">Filtreler</span>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                <li><a class="dropdown-item" href="/events">Tümü</a></li>
-                <li><hr class="dropdown-divider"></li>
-                {% for cat in categories %}
-                <li><a class="dropdown-item" href="/events?category={{ cat[0] }}">{{ cat[0] }}</a></li>
-                {% endfor %}
-            </ul>
+            <button
+              type="submit"
+              class="flex-none h-12 md:h-14 px-6 flex items-center justify-center bg-primary text-white rounded-xl hover:bg-primary-dark transition-colors shadow-lg shadow-primary/20 font-bold gap-2 active:scale-95"
+            >
+              <span class="hidden md:inline">Ara</span>
+              <span class="material-symbols-outlined md:hidden">search</span>
+            </button>
+          </div>
         </div>
-    </div>
-</div>
 
-<div class="row">
-    {% for event in events %}
-    <div class="col-md-6 mb-4">
-        <div class="card h-100 shadow-sm border-start border-5 
-            {% if event[2] == 'active' %} border-success 
-            {% elif event[2] == 'upcoming' %} border-primary 
-            {% elif event[2] == 'cancelled' %} border-danger 
-            {% else %} border-secondary bg-light text-muted {% endif %}"> 
-            
-            <div class="card-body d-flex flex-column"> 
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h5 class="card-title text-primary mb-1">{{ event[12] }}</h5>
-                        <h6 class="card-subtitle mb-2 text-muted small">
-                            <i class="fas fa-calendar-alt"></i> {{ event[1].strftime('%d.%m.%Y %H:%M') }}
-                        </h6>
-                    </div>
-                    </div>
-
-                <p class="card-text mt-3 text-truncate">{{ event[3] }}</p>
-                    {% if event[2] == 'active' %}
-                        <span class="badge bg-success">Aktif</span>
-                    {% elif event[2] == 'upcoming' %}
-                        <span class="badge bg-primary">Yaklaşıyor</span>
-                    {% elif event[2] == 'cancelled' %}
-                        <span class="badge bg-danger">İptal</span>
-                    {% else %}
-                        <span class="badge bg-secondary">Tamamlandı</span>
-                    {% endif %}
-                </div>
-
-                <p class="card-text mt-3 text-truncate">{{ event[3] }}</p>
-
-                <div class="d-flex justify-content-between align-items-center mt-auto p-2 bg-white rounded border">
-                    <small class="text-muted"><i class="fas fa-user-circle"></i> <strong>{{ event[7] }}</strong></small>
-                    <small class="text-muted"><i class="fas fa-route"></i> {{ event[6] }} km</small>
-                    
-                    <small class="fw-bold {% if event[10] >= event[4] %}text-danger{% else %}text-success{% endif %}">
-                        <i class="fas fa-users"></i> {{ event[10] }} / {{ event[4] }}
-                    </small>
-                </div>
-
-                <div class="mt-3 text-end">
-                    <a href="/event/{{ event[0] }}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
-                        İncele & Katıl <i class="fas fa-arrow-right ms-1"></i>
-                    </a>
-                </div>
+        <div
+          id="categoryFilters"
+          class="hidden transition-all duration-300 ease-in-out"
+        >
+          <div
+            class="p-5 bg-slate-50 dark:bg-[#1e2621]/50 rounded-2xl border border-dashed border-slate-200 dark:border-[#2a362f] flex flex-col gap-4"
+          >
+            <div>
+              <p
+                class="text-xs font-bold text-slate-500 mb-3 uppercase tracking-wider"
+              >
+                Zaman
+              </p>
+              <div class="flex gap-2">
+                <button
+                  type="button"
+                  onclick="selectFilter('time', 'upcoming', this)"
+                  class="filter-btn-time h-9 px-4 flex items-center rounded-full text-sm font-bold transition-all active:scale-95 {{ 'bg-primary text-white shadow-md' if current_time_filter == 'upcoming' else 'bg-white dark:bg-[#2a362f] border border-slate-200 dark:border-[#36423b] text-slate-600 dark:text-slate-300 hover:border-primary hover:text-primary' }}"
+                >
+                  Güncel / Yaklaşan
+                </button>
+                <button
+                  type="button"
+                  onclick="selectFilter('time', 'past', this)"
+                  class="filter-btn-time h-9 px-4 flex items-center rounded-full text-sm font-bold transition-all active:scale-95 {{ 'bg-primary text-white shadow-md' if current_time_filter == 'past' else 'bg-white dark:bg-[#2a362f] border border-slate-200 dark:border-[#36423b] text-slate-600 dark:text-slate-300 hover:border-primary hover:text-primary' }}"
+                >
+                  Geçmiş / Tamamlanan
+                </button>
+              </div>
             </div>
+
+            <div class="w-full h-px bg-slate-200 dark:bg-[#2a362f]"></div>
+
+            <div>
+              <p
+                class="text-xs font-bold text-slate-500 mb-3 uppercase tracking-wider"
+              >
+                Kategoriler
+              </p>
+              <div class="flex gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onclick="selectFilter('category', '', this)"
+                  class="filter-btn-category h-9 px-4 flex items-center rounded-full text-sm font-bold transition-all active:scale-95 {{ 'bg-slate-800 text-white shadow-md' if not request.args.get('category') else 'bg-white dark:bg-[#2a362f] border border-slate-200 dark:border-[#36423b] text-slate-600 dark:text-slate-300 hover:border-primary hover:text-primary' }}"
+                >
+                  Tümü
+                </button>
+                {% for cat in categories %}
+                <button
+                  type="button"
+                  onclick="selectFilter('category', '{{ cat[0] }}', this)"
+                  class="filter-btn-category h-9 px-4 flex items-center rounded-full text-sm font-bold transition-all active:scale-95 {{ 'bg-slate-800 text-white shadow-md' if request.args.get('category') == cat[0] else 'bg-white dark:bg-[#2a362f] border border-slate-200 dark:border-[#36423b] text-slate-600 dark:text-slate-300 hover:border-primary hover:text-primary' }}"
+                >
+                  {{ cat[0] }}
+                </button>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
         </div>
+      </form>
     </div>
-    {% else %}
-    <div class="col-12">
-        <div class="alert alert-light text-center border py-5">
-            <i class="fas fa-search fa-3x text-muted mb-3"></i>
-            <p class="lead text-muted">Aradığınız kriterlere uygun etkinlik bulunamadı.</p>
-            <a href="/events" class="btn btn-outline-secondary btn-sm">Filtreleri Temizle</a>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    {% for event in events %}
+    <article
+      class="group bg-white dark:bg-[#1e2621] rounded-2xl overflow-hidden border border-slate-200 dark:border-[#2a362f] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full"
+    >
+      <div class="h-56 w-full relative overflow-hidden">
+        <div
+          class="absolute inset-0 bg-cover bg-center card-zoom-image"
+          style="background-image: url('https://loremflickr.com/800/600/hiking,nature?lock={{ event[0] }}');"
+        ></div>
+        <div
+          class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60"
+        ></div>
+
+        <div
+          class="absolute top-4 left-4 bg-white/95 dark:bg-[#1e2621]/90 backdrop-blur-md px-3 py-2 rounded-xl flex flex-col items-center justify-center min-w-[60px] shadow-lg"
+        >
+          <span
+            class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-[#a1b0a8]"
+            >{{ event[1].strftime('%b') }}</span
+          >
+          <span
+            class="text-xl font-black leading-none text-slate-900 dark:text-white"
+            >{{ event[1].strftime('%d') }}</span
+          >
         </div>
+
+        <div class="absolute top-4 right-4">
+          {% if event[2] == 'active' %}
+          <span
+            class="px-3 py-1 rounded-full text-xs font-bold bg-[#dcfce7] text-[#15803d] shadow-sm border border-[#bbf7d0] flex items-center gap-1"
+          >
+            <span class="size-1.5 rounded-full bg-[#15803d]"></span> Aktif
+          </span>
+          {% elif event[2] == 'upcoming' %}
+          <span
+            class="px-3 py-1 rounded-full text-xs font-bold bg-[#e0f2fe] text-[#0369a1] shadow-sm border border-[#bae6fd] flex items-center gap-1"
+          >
+            <span class="size-1.5 rounded-full bg-[#0369a1]"></span> Yaklaşan
+          </span>
+          {% elif event[2] == 'cancelled' %}
+          <span
+            class="px-3 py-1 rounded-full text-xs font-bold bg-[#fee2e2] text-[#b91c1c] shadow-sm border border-[#fecaca] flex items-center gap-1"
+          >
+            <span class="material-symbols-outlined text-sm">close</span> İptal
+          </span>
+          {% elif event[2] == 'completed' %}
+          <span
+            class="px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600 shadow-sm border border-gray-200 flex items-center gap-1"
+          >
+            <span class="material-symbols-outlined text-sm">check</span>
+            Tamamlandı
+          </span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="p-6 flex flex-col flex-1">
+        <div class="flex items-center gap-2 mb-3">
+          <span
+            class="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-[#a1b0a8]"
+          >
+            <span class="material-symbols-outlined text-sm text-primary"
+              >location_on</span
+            >
+            {{ event[5] }}
+          </span>
+        </div>
+
+        <h3
+          class="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-primary transition-colors line-clamp-1"
+          title="{{ event[12] }}"
+        >
+          {{ event[12] if event[12] else "İsimsiz Etkinlik" }}
+        </h3>
+
+        <p
+          class="text-sm text-slate-600 dark:text-slate-400 mb-5 line-clamp-2 leading-relaxed"
+        >
+          {{ event[3] }}
+        </p>
+
+        <div class="w-full h-px bg-slate-100 dark:bg-[#2a362f] my-2"></div>
+
+        <div class="pt-3 mt-auto flex items-center justify-between">
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-3">
+              <div
+                class="size-9 rounded-full border-2 border-white dark:border-[#1e2621] shadow-sm bg-cover bg-center"
+                style="background-image: url('{{ event[13] if event[13] else 'https://ui-avatars.com/api/?name=' + event[7] }}')"
+              ></div>
+
+              <div class="flex flex-col">
+                <span
+                  class="text-[10px] uppercase font-bold text-slate-400 dark:text-[#a1b0a8] flex items-center gap-1"
+                >
+                  <span class="material-symbols-outlined text-[10px]"
+                    >straighten</span
+                  >
+                  Mesafe
+                </span>
+                <span class="text-xs font-bold text-slate-900 dark:text-white"
+                  >{{ event[6] }} km</span
+                >
+              </div>
+
+              <div class="w-px h-6 bg-slate-200 dark:bg-[#2a362f] mx-1"></div>
+
+              <div class="flex flex-col">
+                <span
+                  class="text-[10px] uppercase font-bold text-slate-400 dark:text-[#a1b0a8] flex items-center gap-1"
+                >
+                  <span class="material-symbols-outlined text-[10px]"
+                    >group</span
+                  >
+                  Katılan
+                </span>
+                <span class="text-xs font-bold text-slate-900 dark:text-white"
+                  >{{ event[10] }}/{{ event[4] }}</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <a
+            href="{{ url_for('main.event_detail', event_id=event[0]) }}"
+            class="flex items-center justify-center gap-1 px-3 py-2 rounded-lg bg-slate-100 dark:bg-[#2a362f] text-slate-900 dark:text-white hover:bg-primary hover:text-white transition-all group-hover:bg-primary group-hover:text-white text-xs font-bold"
+          >
+            Detaylar
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </a>
+        </div>
+      </div>
+    </article>
+    {% else %}
+    <div class="col-span-full py-12 text-center">
+      <div
+        class="inline-flex items-center justify-center size-20 rounded-full bg-slate-100 dark:bg-[#2a362f] mb-4"
+      >
+        <span class="material-symbols-outlined text-4xl text-slate-400"
+          >event_busy</span
+        >
+      </div>
+      <h3 class="text-xl font-bold text-slate-900 dark:text-white">
+        Etkinlik Bulunamadı
+      </h3>
+      <p class="text-slate-500 mt-2">
+        {% if current_time_filter == 'past' %} Geçmişte bu kriterlere uyan bir
+        etkinlik yok. {% else %} Aradığınız kriterlere uygun güncel bir etkinlik
+        yok. Yeni bir tane oluşturmaya ne dersin? {% endif %}
+      </p>
+      {% if current_time_filter != 'past' %}
+      <a
+        href="{{ url_for('main.create') }}?type=event"
+        class="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white font-bold hover:bg-primary-dark transition-colors"
+      >
+        <span class="material-symbols-outlined">add_circle</span>
+        Etkinlik Oluştur
+      </a>
+      {% endif %}
     </div>
     {% endfor %}
+  </div>
+
+  {% if events|length > 9 %}
+  <div class="mt-12 flex justify-center">
+    <button
+      class="px-8 py-3 rounded-xl bg-white dark:bg-[#1e2621] border border-slate-200 dark:border-[#36423b] text-slate-900 dark:text-white font-bold hover:bg-slate-50 dark:hover:bg-[#2a362f] transition-all shadow-sm"
+    >
+      Daha Fazla Yükle
+    </button>
+  </div>
+  {% endif %}
 </div>
+
+<a
+  href="{{ url_for('main.create') }}?type=event"
+  class="md:hidden fixed bottom-6 right-6 z-50 bg-primary text-white size-14 rounded-full shadow-xl flex items-center justify-center hover:bg-primary-dark active:scale-95 transition-all"
+>
+  <span class="material-symbols-outlined text-2xl">add</span>
+</a>
+
+<script>
+  function toggleFilters() {
+    const filters = document.getElementById("categoryFilters");
+    if (filters.classList.contains("hidden")) {
+      filters.classList.remove("hidden");
+    } else {
+      filters.classList.add("hidden");
+    }
+  }
+
+  // [YENİ] Filtre Seçim Mantığı
+  function selectFilter(type, value, btnElement) {
+    // 1. Gizli inputu güncelle
+    if (type === "time") {
+      document.getElementById("inputTime").value = value;
+    } else if (type === "category") {
+      document.getElementById("inputCategory").value = value;
+    }
+
+    // 2. Görsel olarak butonları güncelle (Active/Inactive sınıflarını değiştir)
+    // Bu işlem için sayfa yenilenmez, sadece renk değişir.
+
+    // İlgili gruptaki tüm butonları bul (örn: tüm zaman butonları)
+    const groupClass = "filter-btn-" + type;
+    const allButtons = document.querySelectorAll("." + groupClass);
+
+    // Stil tanımları
+    const activeClasses = ["bg-primary", "text-white", "shadow-md"];
+    // Kategori için aktif: bg-slate-800, Zaman için: bg-primary (Ayrım yaptık)
+    const activeClassesCat = ["bg-slate-800", "text-white", "shadow-md"];
+
+    const inactiveClasses = [
+      "bg-white",
+      "dark:bg-[#2a362f]",
+      "border",
+      "border-slate-200",
+      "dark:border-[#36423b]",
+      "text-slate-600",
+      "dark:text-slate-300",
+      "hover:border-primary",
+      "hover:text-primary",
+    ];
+
+    allButtons.forEach((btn) => {
+      // Hepsini pasif yap
+      if (type === "time") btn.classList.remove(...activeClasses);
+      else btn.classList.remove(...activeClassesCat);
+
+      btn.classList.add(...inactiveClasses);
+    });
+
+    // Tıklanan butonu aktif yap
+    btnElement.classList.remove(...inactiveClasses);
+    if (type === "time") btnElement.classList.add(...activeClasses);
+    else btnElement.classList.add(...activeClassesCat);
+  }
+</script>
 {% endblock %}

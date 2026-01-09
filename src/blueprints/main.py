@@ -50,28 +50,36 @@ def profile(user_id):
                     AND p.is_completed = FALSE
                     AND p.user_id = %s
                 """, (user_id,))
-                # conn.commit() -> Context manager çıkışta otomatik commit yapar
             except Exception as e:
                 current_app.logger.error(f"Otomatik tamamlama hatası: {e}")
 
         # 1. Kullanıcı Bilgileri
-        cur.execute("SELECT user_id, username, password, role, total_points, age, bio, profile_picture_url FROM users WHERE user_id = %s", (user_id,))
+        cur.execute("SELECT user_id, username, password, role, total_points, age, bio, profile_picture_url, created_at, gender FROM users WHERE user_id = %s", (user_id,))
         user = cur.fetchone()
         
         if not user: return "Kullanıcı bulunamadı!", 404
 
-        # Seviye Hesaplama
+        # Seviye ve Renk Hesaplama
         user_level = "Belirsiz"
+        user_rank_color = "bg-gray-100 text-gray-600 border-gray-200" 
         try:
-            cur.execute("SELECT calculate_user_level(%s)", (user[4],))
-            user_level = cur.fetchone()[0]
+            cur.execute("""
+                SELECT name, color_class FROM ranks 
+                WHERE min_points <= %s 
+                ORDER BY min_points DESC LIMIT 1
+            """, (user[4],)) 
+            rank_data = cur.fetchone()
+            if rank_data:
+                user_level = rank_data[0]
+                user_rank_color = rank_data[1]
         except: pass
 
-        # 2. Rozetler & Hobiler & Arkadaşlar
+        # 2. Rozetler
         cur.execute("SELECT b.badge_name, b.icon_url, b.description FROM user_badges ub JOIN badges b ON ub.badge_id = b.badge_id WHERE ub.user_id = %s", (user_id,))
         badges = cur.fetchall()
 
-        cur.execute("SELECT h.hobby_name FROM user_hobbies uh JOIN hobbies h ON uh.hobby_id = h.hobby_id WHERE uh.user_id = %s", (user_id,))
+        # Hobiler
+        cur.execute("SELECT h.hobby_name, h.icon FROM user_hobbies uh JOIN hobbies h ON uh.hobby_id = h.hobby_id WHERE uh.user_id = %s", (user_id,))
         hobbies = cur.fetchall()
 
         cur.execute("SELECT u.user_id, u.username, u.profile_picture_url FROM friendships f JOIN users u ON (f.requester_id = u.user_id OR f.addressee_id = u.user_id) WHERE (f.requester_id = %s OR f.addressee_id = %s) AND f.status = 'accepted' AND u.user_id != %s", (user_id, user_id, user_id))
@@ -112,11 +120,27 @@ def profile(user_id):
             ORDER BY e.event_date DESC
         """, (user_id,))
         organized_events = cur.fetchall()
+
+        # 5. [DÜZELTİLDİ] Üye Olunan Kulüpler
+        # club_image_url ve owner_id düzeltildi.
+        cur.execute("""
+            SELECT 
+                c.club_id, 
+                c.club_name, 
+                c.club_image_url, 
+                (SELECT COUNT(*) FROM club_members cm2 WHERE cm2.club_id = c.club_id) as member_count,
+                CASE WHEN c.owner_id = %s THEN 'admin' ELSE 'member' END as role
+            FROM clubs c
+            JOIN club_members cm ON c.club_id = cm.club_id
+            WHERE cm.user_id = %s
+        """, (user_id, user_id))
+        clubs = cur.fetchall()
         
     return render_template('profile.html', user=user, badges=badges, hobbies=hobbies, 
-                         friends=friends, created_routes=created_routes, user_level=user_level,
-                         upcoming_events=upcoming_events, past_events=past_events, 
-                         organized_events=organized_events)
+                          friends=friends, created_routes=created_routes, 
+                          user_level=user_level, user_rank_color=user_rank_color,
+                          upcoming_events=upcoming_events, past_events=past_events, 
+                          organized_events=organized_events, clubs=clubs)
 
 @main_bp.route('/edit_profile', methods=['GET', 'POST'])
 def edit_profile():
@@ -181,30 +205,43 @@ def leaderboard():
 def routes():
     with get_db() as conn:
         cur = conn.cursor()
+        
+        # Filtre Parametrelerini Al
         search_query = request.args.get('q', '')
         min_dist = request.args.get('min_dist')
         max_dist = request.args.get('max_dist')
+        difficulty = request.args.get('difficulty')
         
-        routes_list = []
+        # Dinamik Sorgu Oluşturma (View üzerinden)
+        # view_popular_routes zaten rotaları listeliyor, üzerine filtre ekleyeceğiz.
+        sql = "SELECT * FROM view_popular_routes WHERE 1=1"
+        params = []
         
-        if min_dist and max_dist:
-            try:
-                cur.execute("SELECT * FROM search_routes_by_distance(%s, %s)", (min_dist, max_dist))
-                raw_data = cur.fetchall()
-                for r in raw_data:
-                    routes_list.append((r[1], r[3], r[2], r[4], 0, 0, 0, r[0]))
-            except Exception as e:
-                current_app.logger.error(f"Fonksiyon Hatası: {e}")
-                routes_list = []
-        else:
-            sql = "SELECT * FROM view_popular_routes"
-            params = []
-            if search_query:
-                sql += " WHERE route_name ILIKE %s"
-                params.append(f"%{search_query}%")
-            cur.execute(sql, tuple(params))
-            routes_list = cur.fetchall()
+        # 1. İsim Araması
+        if search_query:
+            sql += " AND route_name ILIKE %s"
+            params.append(f"%{search_query}%")
         
+        # 2. Mesafe Filtresi
+        if min_dist:
+            sql += " AND distance_km >= %s"
+            params.append(float(min_dist))
+        if max_dist:
+            sql += " AND distance_km <= %s"
+            params.append(float(max_dist))
+            
+        # 3. Zorluk Filtresi
+        if difficulty:
+            sql += " AND difficulty_level = %s"
+            params.append(difficulty)
+            
+        # Sıralama
+        sql += " ORDER BY event_count DESC, average_rating DESC"
+        
+        cur.execute(sql, tuple(params))
+        routes_list = cur.fetchall()
+        
+        # Harita Verisi (Duraklar)
         cur.execute("SELECT route_id, location_name, latitude, longitude FROM stops ORDER BY route_id, stop_order;")
         stops = cur.fetchall()
         map_data = {}
@@ -215,7 +252,7 @@ def routes():
             if r_id not in map_data: map_data[r_id] = []
             map_data[r_id].append([lat, lon])
             
-    return render_template('routes.html', routes=routes_list, map_data=json.dumps(map_data), search_query=search_query)
+    return render_template('routes.html', routes=routes_list, map_data=json.dumps(map_data))
 
 @main_bp.route('/route/<int:route_id>', methods=['GET', 'POST'])
 def route_detail_full(route_id):
@@ -226,26 +263,48 @@ def route_detail(route_id):
     with get_db() as conn:
         cur = conn.cursor()
         
+        # --- [POST] Yorum Ekleme ---
         if request.method == 'POST':
              if 'user_id' not in session: return redirect(url_for('auth.login'))
              try:
                  cur.execute("INSERT INTO route_reviews (route_id, user_id, comment, rating) VALUES (%s, %s, %s, %s)", 
                              (route_id, session['user_id'], request.form['comment'], request.form['rating']))
                  conn.commit()
-             except: pass 
+                 flash("Yorumunuz başarıyla eklendi! 🌟", "success")
+             except Exception as e: 
+                 flash(f"Yorum eklenirken hata oluştu: {e}", "danger")
         
+        # --- [GET] Rota Detayları (Ortalama Puanlı) ---
+        # Tasarımdaki indeks sırasına göre özel SELECT yazdık:
+        # 0:id, 1:creator_id, 2:name, 3:dist, 4:diff, 5:dur, 6:date, 7:username, 8:RATING(AVG), 9:pp
         cur.execute("""
-            SELECT r.*, u.username, u.profile_picture_url 
+            SELECT 
+                r.route_id, 
+                r.creator_id, 
+                r.route_name, 
+                r.distance_km, 
+                r.difficulty_level, 
+                r.estimated_duration, 
+                r.created_at,
+                u.username,
+                COALESCE(AVG(rr.rating), 0) as avg_rating,
+                u.profile_picture_url
             FROM routes r 
             JOIN users u ON r.creator_id = u.user_id 
+            LEFT JOIN route_reviews rr ON r.route_id = rr.route_id
             WHERE r.route_id = %s
+            GROUP BY r.route_id, u.user_id, u.username, u.profile_picture_url
         """, (route_id,))
         route = cur.fetchone()
         
-        # Cursor kullanımı örneği (Hoca isteği)
+        if not route: return "Rota bulunamadı", 404
+        
+        # --- [GET] Duraklar (Senin Cursor Fonksiyonun) ---
+        # Hoca isteği olan cursor fonksiyonunu koruduk
         cur.execute("SELECT * FROM get_stops_via_cursor(%s)", (route_id,))
         stops = cur.fetchall()
         
+        # --- [GET] Yorumlar ---
         cur.execute("""
             SELECT r.rating, r.comment, r.created_at, u.username, u.profile_picture_url, u.user_id 
             FROM route_reviews r 
@@ -256,7 +315,6 @@ def route_detail(route_id):
         reviews = cur.fetchall()
         
     return render_template('route_detail.html', route=route, stops=stops, reviews=reviews)
-
 @main_bp.route('/delete_route/<int:route_id>')
 def delete_route(route_id):
     if 'user_id' not in session: return redirect(url_for('auth.login'))
@@ -292,41 +350,58 @@ def events():
     with get_db() as conn:
         cur = conn.cursor()
         
-        cur.execute("UPDATE events SET status = 'completed' WHERE event_date < NOW() AND status IN ('active', 'upcoming')")
+        # 1. Tarihi geçenleri otomatik 'completed' yap (Statusu 'cancelled' olanlara dokunma, onlar zaten bitmiş)
+        cur.execute("""
+            UPDATE events 
+            SET status = 'completed' 
+            WHERE event_date < NOW() AND status IN ('active', 'upcoming')
+        """)
         conn.commit()
 
+        # Filtreleri Al
         search_query = request.args.get('q', '')
         category_filter = request.args.get('category')
-        
+        time_filter = request.args.get('time', 'upcoming') # Varsayılan: Yaklaşan (upcoming)
+
+        # Temel Sorgu
         base_query = """
             SELECT e.event_id, e.event_date, e.status, e.description, e.max_participants,
                    r.route_name, r.distance_km, u.username, c.category_name, c.icon_url,
-                   COUNT(p.participation_id) as current_count,
-                   e.organizer_id,
-                   e.title
+                   (SELECT COUNT(*) FROM participations WHERE event_id = e.event_id) as current_count,
+                   e.organizer_id, e.title, u.profile_picture_url
             FROM events e
             JOIN routes r ON e.route_id = r.route_id
             JOIN users u ON e.organizer_id = u.user_id
             JOIN categories c ON e.category_id = c.category_id
-            LEFT JOIN participations p ON e.event_id = p.event_id
-            WHERE e.status != 'completed' 
+            WHERE 1=1 
         """
-        
         params = []
+
+        # Zaman Filtresi Mantığı
+        if time_filter == 'past':
+            # Geçmiş: Tarihi eskide kalmış VEYA statusu completed olanlar
+            base_query += " AND (e.event_date < NOW() OR e.status = 'completed')"
+        else:
+            # Güncel (Varsayılan): Tarihi gelmemiş VE completed olmayanlar (Cancelled dahil görünür)
+            base_query += " AND e.event_date >= NOW() AND e.status != 'completed'"
+
+        # Arama Filtresi
         if search_query:
-            base_query += " AND (e.description ILIKE %s OR r.route_name ILIKE %s)"
+            base_query += " AND (e.title ILIKE %s OR e.description ILIKE %s OR r.route_name ILIKE %s)"
             term = f"%{search_query}%"
-            params.extend([term, term])
-            
+            params.extend([term, term, term])
+        
+        # Kategori Filtresi
         if category_filter:
             base_query += " AND c.category_name = %s"
             params.append(category_filter)
         
-        base_query += """
-            GROUP BY e.event_id, r.route_name, r.distance_km, u.username, c.category_name, c.icon_url, e.organizer_id, e.title
-            ORDER BY e.event_date ASC;
-        """
-        
+        # Sıralama: Yaklaşanlar için en yakın tarih, Geçmişler için en son tarih
+        if time_filter == 'past':
+            base_query += " ORDER BY e.event_date DESC"
+        else:
+            base_query += " ORDER BY e.event_date ASC"
+
         cur.execute(base_query, tuple(params))
         events_list = cur.fetchall()
         
@@ -338,19 +413,23 @@ def events():
             cur.execute("SELECT event_id FROM participations WHERE user_id = %s", (session['user_id'],))
             my_participations = [row[0] for row in cur.fetchall()]
         
-    return render_template('events.html', events=events_list, categories=categories, my_events=my_participations, search_query=search_query)
+    return render_template('events.html', events=events_list, categories=categories, my_events=my_participations, search_query=search_query, current_time_filter=time_filter)
+
 
 @main_bp.route('/event/<int:event_id>/')
 def event_detail(event_id):
     with get_db() as conn:
         cur = conn.cursor()
         
+        # [GÜNCELLENDİ] r.route_name (16) ve r.route_id (17) eklendi
         cur.execute("""
             SELECT e.event_id, e.organizer_id, e.route_id, e.category_id, e.event_date, e.description,
                    e.status, e.max_participants, e.deadline, r.distance_km, r.estimated_duration,
                    u.username, u.profile_picture_url, c.category_name,
                    (SELECT COUNT(*) FROM participations WHERE event_id = e.event_id),
-                   e.title
+                   e.title,
+                   r.route_name,  -- Index 16
+                   r.route_id     -- Index 17
             FROM events e
             JOIN routes r ON e.route_id = r.route_id
             JOIN users u ON e.organizer_id = u.user_id
@@ -361,6 +440,7 @@ def event_detail(event_id):
         
         if not event: return "Etkinlik Bulunamadı", 404
         
+        # Stops sorgusuna location_name (durak ismi) de geliyor (Index 2)
         cur.execute("SELECT * FROM stops WHERE route_id = %s ORDER BY stop_order", (event[2],))
         stops = cur.fetchall()
         
@@ -464,10 +544,12 @@ def create():
                         if stops_json:
                             stops = json.loads(stops_json)
                             for idx, s in enumerate(stops):
+                                # [GÜNCELLENDİ] İsim kontrolü eklendi
+                                stop_name = s.get('name', f"Durak {idx+1}")
                                 cur.execute("""
                                     INSERT INTO stops (route_id, stop_order, location_name, latitude, longitude)
                                     VALUES (%s, %s, %s, %s, %s)
-                                """, (final_route_id, idx+1, f"Durak {idx+1}", s['lat'], s['lng']))
+                                """, (final_route_id, idx+1, stop_name, s['lat'], s['lng']))
                     else:
                         final_route_id = request.form['route_id']
 
@@ -501,10 +583,12 @@ def create():
                     if stops_json:
                         stops = json.loads(stops_json)
                         for idx, s in enumerate(stops):
+                            # [GÜNCELLENDİ] İsim kontrolü eklendi
+                            stop_name = s.get('name', f"Durak {idx+1}")
                             cur.execute("""
                                 INSERT INTO stops (route_id, stop_order, location_name, latitude, longitude)
                                 VALUES (%s, %s, %s, %s, %s)
-                            """, (new_route_id, idx+1, f"Durak {idx+1}", s['lat'], s['lng']))
+                            """, (new_route_id, idx+1, stop_name, s['lat'], s['lng']))
                     
                     conn.commit()
                     flash("Rota kütüphaneye eklendi! 🗺️", "success")
@@ -514,7 +598,11 @@ def create():
                     flash("Rota kaydedilemedi.", "danger")
 
         # GET İsteği
-        cur.execute("SELECT route_id, route_name, distance_km FROM routes ORDER BY route_id DESC")
+        cur.execute("""
+            SELECT route_id, route_name, distance_km, difficulty_level, average_rating 
+            FROM view_popular_routes 
+            ORDER BY route_name ASC
+        """)
         routes = cur.fetchall()
         cur.execute("SELECT category_id, category_name FROM categories")
         categories = cur.fetchall()
@@ -772,6 +860,21 @@ def remove_friend(target_id):
             flash("Bir hata oluştu.", "danger")
         
     return redirect(url_for('main.friends'))
+
+# Reddetme Rotası
+@main_bp.route('/reject_friend/<int:request_id>')
+def reject_friend(request_id):
+    if 'user_id' not in session: return redirect(url_for('auth.login'))
+    
+    with get_db() as conn:
+        cur = conn.cursor()
+        # İsteği silmek yerine durumunu 'rejected' yapıyoruz
+        cur.execute("UPDATE friendships SET status = 'rejected' WHERE friendship_id = %s AND addressee_id = %s", (request_id, session['user_id']))
+        conn.commit()
+        flash("Arkadaşlık isteği reddedildi.", "info")
+    
+    return redirect(url_for('main.friends'))
+
 
 # ==========================================
 # BİLDİRİMLER (NOTIFICATIONS)

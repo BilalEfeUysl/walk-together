@@ -1,240 +1,387 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html class="light" lang="tr">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Walk Together 🌿</title>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>{% block title %}Walk Together - Doğa Topluluğu{% endblock %}</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
     <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap"
       rel="stylesheet"
     />
     <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&display=swap"
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
     <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/style.css') }}"
     />
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#2d6c4e",
+              "primary-dark": "#1f4d36",
+              "background-light": "#f8f9fa",
+              "background-dark": "#151d19",
+              sage: "#e9edeb",
+            },
+            fontFamily: {
+              display: ["Plus Jakarta Sans", "sans-serif"],
+              stylish: ["Outfit", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.5rem",
+              lg: "0.75rem",
+              xl: "1rem",
+              "2xl": "1.5rem",
+              "3xl": "2rem",
+            },
+            animation: {
+              "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        font-family: "Plus Jakarta Sans", sans-serif;
+      }
+      /* Scrollbar Özelleştirme */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+    </style>
   </head>
-  <body>
-    <nav class="navbar navbar-expand-lg fixed-top">
-      <div class="container">
-        <a class="navbar-brand" href="/">
-          <i class="fas fa-mountain me-2"></i>Walk Together
-        </a>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ms-auto align-items-center">
-            <li class="nav-item"><a class="nav-link" href="/">Keşfet</a></li>
-            <li class="nav-item">
-              <a class="nav-link" href="/events">Etkinlikler</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/routes">Rotalar</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/clubs">Kulüpler</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/friends">Arkadaşlar</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/leaderboard">Liderler</a>
-            </li>
+  <body
+    class="bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-100 antialiased min-h-screen flex flex-col"
+  >
+    <nav
+      class="sticky top-0 z-50 w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 h-20 transition-all"
+    >
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+        <div class="flex justify-between items-center h-full">
+          <a
+            href="{{ url_for('main.index') }}"
+            class="flex items-center gap-3 group cursor-pointer hover:opacity-90 transition-opacity"
+          >
+            <div
+              class="bg-primary/10 p-2 rounded-xl group-hover:bg-primary/20 transition-colors"
+            >
+              <span
+                class="material-symbols-outlined text-primary dark:text-green-400 text-3xl group-hover:-rotate-12 transition-transform"
+                >hiking</span
+              >
+            </div>
+            <div class="flex items-baseline gap-1">
+              <span
+                class="text-xl font-black tracking-tight text-slate-900 dark:text-white font-stylish"
+                >Walk</span
+              >
+              <span
+                class="text-xl font-bold text-primary dark:text-green-400 tracking-wide font-stylish"
+                >Together</span
+              >
+            </div>
+          </a>
 
+          <div
+            class="hidden lg:flex items-center gap-1 bg-slate-100/50 dark:bg-slate-800/50 p-1.5 rounded-2xl border border-slate-200/50 dark:border-slate-700/50"
+          >
+            {% set nav_base = "px-5 py-2.5 text-sm font-bold rounded-xl
+            transition-all duration-200" %} {% set nav_active = "bg-white
+            dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm" %} {%
+            set nav_inactive = "text-slate-500 dark:text-slate-400
+            hover:text-slate-900 dark:hover:text-white hover:bg-white/50
+            dark:hover:bg-slate-700/50" %}
+
+            <a
+              class="{{ nav_base }} {{ nav_active if request.endpoint == 'main.index' else nav_inactive }}"
+              href="{{ url_for('main.index') }}"
+              >Keşfet</a
+            >
+            <a
+              class="{{ nav_base }} {{ nav_active if request.endpoint == 'main.events' else nav_inactive }}"
+              href="{{ url_for('main.events') }}"
+              >Etkinlikler</a
+            >
+            <a
+              class="{{ nav_base }} {{ nav_active if request.endpoint == 'main.routes' else nav_inactive }}"
+              href="{{ url_for('main.routes') }}"
+              >Rotalar</a
+            >
+            <a
+              class="{{ nav_base }} {{ nav_active if request.endpoint == 'main.clubs' else nav_inactive }}"
+              href="{{ url_for('main.clubs') }}"
+              >Kulüpler</a
+            >
+            <a
+              class="{{ nav_base }} {{ nav_active if request.endpoint == 'main.friends' else nav_inactive }}"
+              href="{{ url_for('main.friends') }}"
+              >Arkadaşlar</a
+            >
+            <a
+              class="{{ nav_base }} {{ nav_active if request.endpoint == 'main.leaderboard' else nav_inactive }}"
+              href="{{ url_for('main.leaderboard') }}"
+              >Liderler</a
+            >
+          </div>
+
+          <div class="flex items-center gap-3">
             {% if session.get('user_id') %}
-            <li class="nav-item me-2 ms-2">
-              <a
-                class="btn btn-light text-dark shadow-sm border"
-                href="/create"
-                title="Yeni Ekle"
-              >
-                <i class="fas fa-plus"></i>
-              </a>
-            </li>
 
-            <li class="nav-item dropdown mx-3">
+            <a
+              href="{{ url_for('main.create') }}"
+              class="flex items-center gap-2 pl-3 pr-5 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold transition-all shadow-lg shadow-primary/25 hover:shadow-primary/40 active:scale-95 mr-2"
+            >
+              <span class="material-symbols-outlined text-[22px]">add</span>
+              <span class="hidden sm:inline text-sm">Oluştur</span>
+            </a>
+
+            <div class="relative group">
               <a
-                class="nav-link position-relative text-dark"
-                href="#"
-                data-bs-toggle="dropdown"
+                href="{{ url_for('main.notifications_page') }}"
+                class="relative p-2.5 text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all block"
               >
-                <i class="far fa-bell fa-lg"></i>
-                {% if unread_count > 0 %}
                 <span
-                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light"
+                  class="material-symbols-outlined {{ 'animate-pulse' if unread_count and unread_count > 0 }}"
+                  >notifications</span
                 >
-                  {{ unread_count }}
+                {% if unread_count and unread_count > 0 %}
+                <span class="absolute top-2.5 right-2.5 flex h-2.5 w-2.5">
+                  <span
+                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"
+                  ></span>
+                  <span
+                    class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 border-2 border-white dark:border-slate-900"
+                  ></span>
                 </span>
                 {% endif %}
               </a>
 
-              <ul
-                class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-3"
-                style="width: 340px; border-radius: 12px"
+              <div
+                class="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right z-50 overflow-hidden"
               >
-                <li
-                  class="dropdown-header fw-bold py-2 border-bottom d-flex justify-content-between align-items-center"
+                <div
+                  class="px-4 py-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 flex justify-between items-center"
                 >
-                  <span>Bildirimler</span>
-                  {% if unread_count > 0 %} {% endif %}
-                </li>
-
-                <div style="max-height: 300px; overflow-y: auto">
-                  {% for notif in notifications %}
-                  <li class="position-relative border-bottom">
-                    <a
-                      href="{{ notif[4] if notif[4] else '#' }}"
-                      class="text-decoration-none"
-                    >
-                      <div
-                        class="d-flex align-items-start p-3 bg-white hover-bg-light"
-                      >
-                        {% if not notif[2] %}
-                        <div
-                          class="mt-2 bg-primary rounded-circle me-2"
-                          style="width: 8px; height: 8px; flex-shrink: 0"
-                        ></div>
-                        {% endif %}
-
-                        <div class="flex-grow-1 pe-4">
-                          <p
-                            class="mb-1 text-wrap text-dark lh-sm"
-                            style="font-size: 0.9rem"
-                          >
-                            {{ notif[0] }}
-                          </p>
-                          <small class="text-muted" style="font-size: 0.75rem"
-                            >{{ notif[1].strftime('%d.%m %H:%M') }}</small
-                          >
-                        </div>
-                      </div>
-                    </a>
-
-                    <a
-                      href="/delete_notification/{{ notif[3] }}"
-                      class="text-danger position-absolute top-0 end-0 m-2 p-1 text-decoration-none"
-                      title="Sil"
-                      style="z-index: 10"
-                    >
-                      <i class="fas fa-times"></i>
-                    </a>
-                  </li>
-                  {% else %}
-                  <li class="p-5 text-center text-muted">
-                    <i class="far fa-envelope-open fa-2x mb-3 opacity-50"></i
-                    ><br />
-                    Henüz yeni bir bildirim yok.
-                  </li>
-                  {% endfor %}
+                  <span
+                    class="text-xs font-bold uppercase tracking-wider text-slate-500"
+                    >Bildirimler</span
+                  >
+                  {% if unread_count > 0 %}
+                  <span
+                    class="bg-red-100 text-red-600 px-2 py-0.5 rounded text-[10px] font-bold"
+                    >{{ unread_count }} Yeni</span
+                  >
+                  {% endif %}
                 </div>
-
-                <li>
+                <div class="max-h-64 overflow-y-auto">
+                  {% if notifications %} {% for notif in notifications[:4] %}
                   <a
-                    class="dropdown-item text-center small fw-bold text-primary py-2 border-top bg-light rounded-bottom"
-                    href="/notifications"
+                    href="{{ notif[4] if notif[4] else '#' }}"
+                    class="block px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 border-b border-slate-50 dark:border-slate-700/50 last:border-0 transition-colors"
                   >
-                    Tüm Bildirimleri Yönet
+                    <div class="flex gap-3">
+                      <div
+                        class="mt-1 size-2 rounded-full {{ 'bg-primary' if not notif[2] else 'bg-slate-300' }} shrink-0"
+                      ></div>
+                      <div>
+                        <p
+                          class="text-sm text-slate-800 dark:text-slate-200 {{ 'font-bold' if not notif[2] else 'font-normal' }} line-clamp-2 leading-snug"
+                        >
+                          {{ notif[0] }}
+                        </p>
+                        <p class="text-[10px] text-slate-400 mt-1">
+                          {{ notif[1].strftime('%d.%m %H:%M') }}
+                        </p>
+                      </div>
+                    </div>
                   </a>
-                </li>
-              </ul>
-            </li>
-
-            <li class="nav-item dropdown ms-3">
-              <a
-                class="btn btn-dark dropdown-toggle rounded-pill px-4 shadow-sm text-white d-flex align-items-center gap-2"
-                href="#"
-                role="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                <i class="fas fa-user-circle"></i>
-                <span class="fw-bold">{{ session.get('username') }}</span>
-              </a>
-              <ul
-                class="dropdown-menu dropdown-menu-end border-0 shadow-lg mt-2"
-              >
-                <li>
-                  <div class="px-3 py-2">
-                    <small class="text-muted d-block">Hoşgeldin,</small>
-                    <strong>{{ session.get('username') }}</strong>
+                  {% endfor %} {% else %}
+                  <div class="p-4 text-center text-slate-400 text-sm">
+                    Hiç bildirim yok.
                   </div>
-                </li>
-                <li><hr class="dropdown-divider" /></li>
-                <li>
+                  {% endif %}
+                </div>
+                <a
+                  href="{{ url_for('main.notifications_page') }}"
+                  class="block text-center py-2.5 text-xs font-bold text-primary hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border-t border-slate-100 dark:border-slate-700"
+                >
+                  Tümünü Gör
+                </a>
+              </div>
+            </div>
+
+            <div class="relative group pl-2">
+              <button class="flex items-center gap-3 focus:outline-none">
+                <div
+                  class="h-10 w-10 rounded-full bg-cover bg-center ring-2 ring-slate-100 dark:ring-slate-700 group-hover:ring-primary transition-all shadow-sm"
+                  style="background-image: url('https://ui-avatars.com/api/?name={{ session.get('username', 'U') }}&background=random&color=fff');"
+                ></div>
+                <span
+                  class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors text-sm"
+                  >expand_more</span
+                >
+              </button>
+
+              <div
+                class="absolute right-0 mt-3 w-56 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right scale-95 group-hover:scale-100 z-50 overflow-hidden"
+              >
+                <div
+                  class="px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700"
+                >
+                  <p
+                    class="text-xs text-slate-500 font-bold uppercase tracking-wider"
+                  >
+                    Hesabım
+                  </p>
+                  <p
+                    class="text-sm font-black text-slate-900 dark:text-white truncate"
+                  >
+                    {{ session.get('username') }}
+                  </p>
+                </div>
+                <div class="p-1.5">
                   <a
-                    class="dropdown-item"
-                    href="/profile/{{ session.get('user_id') }}"
-                    ><i class="fas fa-user me-2 text-primary"></i> Profilim</a
+                    href="{{ url_for('main.profile', user_id=session.get('user_id')) }}"
+                    class="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-primary rounded-xl transition-colors"
                   >
-                </li>
-
-                {% if session.get('role') == 'admin' %}
-                <li>
-                  <a class="dropdown-item fw-bold text-danger" href="/admin">
-                    <i class="fas fa-tools me-2"></i> Yönetim Paneli
+                    <span class="material-symbols-outlined text-[20px]"
+                      >person</span
+                    >
+                    Profilim
                   </a>
-                </li>
-                {% endif %}
-
-                <li>
-                  <a class="dropdown-item text-danger fw-bold" href="/logout"
-                    ><i class="fas fa-sign-out-alt me-2"></i> Çıkış Yap</a
+                  {% if session.get('role') == 'admin' %}
+                  <a
+                    href="{{ url_for('admin.dashboard') }}"
+                    class="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600 rounded-xl transition-colors"
                   >
-                </li>
-              </ul>
-            </li>
+                    <span class="material-symbols-outlined text-[20px]"
+                      >admin_panel_settings</span
+                    >
+                    Yönetici Paneli
+                  </a>
+                  {% endif %}
+                  <div class="h-px bg-slate-100 dark:bg-slate-700 my-1"></div>
+                  <a
+                    href="{{ url_for('auth.logout') }}"
+                    class="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                  >
+                    <span class="material-symbols-outlined text-[20px]"
+                      >logout</span
+                    >
+                    Çıkış Yap
+                  </a>
+                </div>
+              </div>
+            </div>
 
             {% else %}
-            <li class="nav-item ms-3">
+            <div class="flex items-center gap-3">
               <a
-                class="btn btn-primary rounded-pill px-4 shadow-sm"
-                href="/login"
+                href="{{ url_for('auth.login') }}"
+                class="text-sm font-bold text-slate-600 hover:text-primary transition-colors px-4 py-2"
                 >Giriş Yap</a
               >
-            </li>
+              <a
+                href="{{ url_for('auth.register') }}"
+                class="px-5 py-2.5 bg-primary hover:bg-primary-dark text-white text-sm font-bold rounded-xl transition-colors shadow-lg shadow-primary/20 hover:shadow-primary/40 active:scale-95"
+              >
+                Kayıt Ol
+              </a>
+            </div>
             {% endif %}
-          </ul>
+          </div>
         </div>
       </div>
     </nav>
 
-    <div class="container" style="padding-top: 100px; min-height: 80vh">
-      {% with messages = get_flashed_messages(with_categories=true) %} {% if
-      messages %} {% for category, message in messages %}
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if
+    messages %}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+      {% for category, message in messages %}
       <div
-        class="alert alert-{{ category }} alert-dismissible fade show shadow-sm"
-        role="alert"
+        class="mb-4 p-4 rounded-2xl border flex items-center gap-3 shadow-sm animate-fade-in {% if category == 'success' %} bg-green-50 text-green-800 border-green-200 {% elif category == 'error' or category == 'danger' %} bg-red-50 text-red-800 border-red-200 {% else %} bg-blue-50 text-blue-800 border-blue-200 {% endif %}"
       >
-        {{ message }}
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="alert"
-        ></button>
+        <span class="material-symbols-outlined text-[20px]">
+          {% if category == 'success' %}check_circle {% elif category == 'error'
+          or category == 'danger' %}error {% else %}info{% endif %}
+        </span>
+        <span class="text-sm font-bold">{{ message }}</span>
       </div>
-      {% endfor %} {% endif %} {% endwith %} {% block content %}{% endblock %}
+      {% endfor %}
     </div>
+    {% endif %} {% endwith %}
 
-    <footer class="text-center mt-5 py-5 border-top bg-white">
-      <p class="mb-0 text-muted">
-        &copy; 2026 Walk Together | Doğa ile Bağlan 🌲
-      </p>
+    <main class="flex-grow w-full mx-auto">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer
+      class="bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 py-4 mt-auto"
+    >
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div
+          class="flex flex-col md:flex-row justify-between items-center gap-4"
+        >
+          <div class="flex items-center gap-3">
+            <div class="bg-primary/10 p-1.5 rounded-lg">
+              <span class="material-symbols-outlined text-primary text-xl"
+                >hiking</span
+              >
+            </div>
+            <span
+              class="text-base font-black text-slate-900 dark:text-white tracking-tight"
+              >Walk Together</span
+            >
+          </div>
+
+          <div class="text-xs font-medium text-slate-400">
+            © 2026 Walk Together. Doğa ile Bağlan 🌲
+          </div>
+
+          <div class="flex gap-4">
+            <a
+              class="size-8 flex items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800 text-slate-500 hover:text-primary hover:bg-green-50 transition-colors"
+              href="#"
+              ><i class="fab fa-twitter text-sm"></i
+            ></a>
+            <a
+              class="size-8 flex items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800 text-slate-500 hover:text-pink-600 hover:bg-pink-50 transition-colors"
+              href="#"
+              ><i class="fab fa-instagram text-sm"></i
+            ></a>
+            <a
+              class="size-8 flex items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800 text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+              href="#"
+              ><i class="fab fa-facebook text-sm"></i
+            ></a>
+          </div>
+        </div>
+      </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <style>
-      .hover-bg-light:hover {
-        background-color: #f8f9fa !important;
-      }
-    </style>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
   </body>
 </html>

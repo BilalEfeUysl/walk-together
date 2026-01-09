@@ -1,77 +1,275 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %} {% block content %}
 
-{% block content %}
-<div class="row">
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm mb-4">
-            <img src="{{ club[4] or 'https://loremflickr.com/400/200/team' }}" class="card-img-top" style="height: 200px; object-fit: cover;">
-            
-            <div class="card-body text-center">
-                <h3 class="fw-bold">{{ club[1] }}</h3>
-                <p class="text-muted">{{ club[2] }}</p>
-                
-                {% if session.get('user_id') == club[3] %}
-                <div class="mb-3">
-                    <a href="/edit_club/{{ club[0] }}" class="btn btn-outline-warning w-100 fw-bold">
-                        <i class="fas fa-edit"></i> Kulüp Bilgilerini Düzenle
-                    </a>
-                </div>
-                {% endif %}
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          primary: "#2d6c4e",
+          "primary-light": "#e8f0eb",
+          sage: "#6c7f76",
+          "sage-light": "#f1f3f2",
+          "background-light": "#fafaf9",
+          "background-dark": "#171c1a",
+        },
+        fontFamily: {
+          display: ["Plus Jakarta Sans", "sans-serif"],
+        },
+        boxShadow: {
+          soft: "0 4px 20px -2px rgba(45, 108, 78, 0.05)",
+        },
+      },
+    },
+  };
+</script>
 
-                <div class="d-grid gap-2">
-                    {% if is_member %}
-                        <button class="btn btn-success disabled"><i class="fas fa-check"></i> Üyesiniz</button>
-                    {% else %}
-                        <a href="/join_club/{{ club[0] }}" class="btn btn-outline-success">Katıl</a>
-                    {% endif %}
-                </div>
-            </div>
+<div
+  class="flex-1 flex flex-col items-center w-full px-4 sm:px-6 lg:px-8 py-8 max-w-[1120px] mx-auto gap-6 font-display"
+>
+  <header
+    class="w-full flex flex-col gap-0 rounded-3xl overflow-hidden shadow-lg bg-white dark:bg-[#1f2623] border border-slate-100 dark:border-slate-800"
+  >
+    <div class="relative w-full h-[300px] bg-gray-200 group">
+      <div
+        class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+        style="background-image: url('{{ club[4] if club[4] else 'https://loremflickr.com/1200/400/nature,hiking?lock=' ~ club[0] }}');"
+      ></div>
+      <div
+        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"
+      ></div>
 
-            <div class="card-footer bg-white">
-                <h6 class="fw-bold mb-3">Üyeler</h6>
-                <div class="d-flex flex-wrap gap-2 justify-content-center">
-                    {% for m in members %}
-                    <a href="/profile/{{ m[0] }}" title="{{ m[1] }}">
-                        <img src="https://ui-avatars.com/api/?name={{ m[1] }}&background=random" class="rounded-circle" width="40">
-                    </a>
-                    {% endfor %}
-                </div>
-            </div>
+      <div
+        class="absolute bottom-0 left-0 p-8 w-full flex flex-col sm:flex-row sm:items-end justify-between gap-4"
+      >
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center gap-2 mb-1">
+            <span
+              class="px-3 py-1 rounded-full bg-primary/90 text-white text-xs font-bold uppercase tracking-wide backdrop-blur-sm border border-white/20"
+              >Resmi Kulüp</span
+            >
+          </div>
+          <h1
+            class="text-white text-4xl font-black tracking-tight leading-tight shadow-sm"
+          >
+            {{ club[1] }}
+          </h1>
+          <div
+            class="flex items-center text-gray-200 text-sm font-medium gap-4 mt-1"
+          >
+            <span class="flex items-center gap-1.5"
+              ><span class="material-symbols-outlined text-[18px]">group</span>
+              {{ members|length }} Üye</span
+            >
+            <span class="flex items-center gap-1.5"
+              ><span class="material-symbols-outlined text-[18px]">event</span>
+              Aktif Topluluk</span
+            >
+          </div>
         </div>
-    </div>
 
-    <div class="col-md-8">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white py-3">
-                <h5 class="mb-0 fw-bold"><i class="fas fa-bullhorn text-warning"></i> Duyuru Duvarı</h5>
-            </div>
-            <div class="card-body">
-                
-                {% if session.get('user_id') == club[3] %}
-                    <form method="POST" class="mb-4">
-                        <input type="hidden" name="club_name" value="{{ club[1] }}">
-                        <div class="input-group">
-                            <input type="text" name="message" class="form-control" placeholder="Yönetici olarak bir duyuru paylaş..." required>
-                            <button class="btn btn-primary" type="submit"><i class="fas fa-paper-plane"></i> Paylaş</button>
-                        </div>
-                    </form>
-                {% endif %}
-                <div class="list-group list-group-flush">
-                    {% for ann in announcements %}
-                    <div class="list-group-item d-flex align-items-start px-0">
-                        <img src="https://ui-avatars.com/api/?name={{ ann[2] }}&background=random" class="rounded-circle me-3" width="40">
-                        <div>
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <h6 class="fw-bold mb-0 text-primary">{{ ann[2] }}</h6> <small class="text-muted" style="font-size: 0.7rem;">{{ ann[1].strftime('%d.%m %H:%M') }}</small>
-                            </div>
-                            <p class="mb-0 text-dark">{{ ann[0] }}</p> </div>
-                    </div>
-                    {% else %}
-                    <p class="text-center text-muted py-4">Henüz bir duyuru yok.</p>
-                    {% endfor %}
-                </div>
-            </div>
+        <div class="hidden sm:flex gap-3">
+          <div
+            class="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/20 text-center min-w-[90px]"
+          >
+            <p class="text-white text-xl font-bold leading-none">
+              {{ members|length }}
+            </p>
+            <p
+              class="text-gray-300 text-[10px] font-bold uppercase tracking-wider mt-1"
+            >
+              Üye
+            </p>
+          </div>
         </div>
+      </div>
     </div>
+  </header>
+
+  <div
+    class="w-full grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-8 items-start"
+  >
+    <aside class="flex flex-col gap-6 lg:sticky lg:top-24">
+      <div
+        class="bg-white dark:bg-[#1f2623] p-5 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col gap-4"
+      >
+        {% if is_member %}
+        <button
+          disabled
+          class="w-full h-12 flex items-center justify-center gap-2 bg-green-100 text-green-700 text-base font-bold rounded-xl cursor-default"
+        >
+          <span class="material-symbols-outlined">check_circle</span>
+          Üyesiniz
+        </button>
+        {% else %}
+        <a
+          href="{{ url_for('main.join_club', club_id=club[0]) }}"
+          class="w-full h-12 flex items-center justify-center gap-2 bg-primary hover:bg-[#255a41] text-white text-base font-bold rounded-xl transition-all shadow-lg shadow-primary/30 active:scale-[0.98]"
+        >
+          <span class="material-symbols-outlined">add_circle</span>
+          Kulübe Katıl
+        </a>
+        {% endif %} {% if session.get('user_id') == club[3] %}
+        <a
+          href="{{ url_for('main.edit_club', club_id=club[0]) }}"
+          class="w-full h-10 flex items-center justify-center gap-2 bg-white border-2 border-slate-200 hover:border-primary hover:text-primary text-slate-600 text-sm font-bold rounded-xl transition-all"
+        >
+          <span class="material-symbols-outlined text-[18px]">settings</span>
+          Yönetici Ayarları
+        </a>
+        {% endif %}
+      </div>
+
+      <div
+        class="bg-white dark:bg-[#1f2623] p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col gap-4"
+      >
+        <h3
+          class="text-slate-900 dark:text-white text-lg font-bold flex items-center gap-2"
+        >
+          <span class="material-symbols-outlined text-primary">info</span>
+          Hakkında
+        </h3>
+        <p
+          class="text-sage dark:text-gray-300 text-sm leading-relaxed font-medium"
+        >
+          {{ club[2] }}
+        </p>
+      </div>
+
+      <div
+        class="bg-white dark:bg-[#1f2623] p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col gap-4"
+      >
+        <div class="flex justify-between items-center">
+          <h3 class="text-slate-900 dark:text-white text-lg font-bold">
+            Üyeler
+          </h3>
+          <span
+            class="text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 px-2 py-1 rounded"
+            >{{ members|length }}</span
+          >
+        </div>
+        <div class="grid grid-cols-5 gap-2">
+          {% for m in members[:10] %}
+          <a
+            href="{{ url_for('main.profile', user_id=m[0]) }}"
+            class="aspect-square rounded-xl bg-gray-200 bg-cover bg-center cursor-pointer hover:opacity-80 transition-all border border-slate-100 dark:border-slate-700"
+            title="{{ m[1] }}"
+            style="background-image: url('https://ui-avatars.com/api/?name={{ m[1] }}&background=random');"
+          ></a>
+          {% endfor %} {% if members|length > 10 %}
+          <div
+            class="aspect-square rounded-xl bg-primary/10 text-primary flex items-center justify-center text-xs font-bold border border-primary/20"
+          >
+            +{{ members|length - 10 }}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </aside>
+
+    <section class="flex flex-col gap-6 w-full">
+      {% if session.get('user_id') == club[3] %}
+      <div
+        class="bg-white dark:bg-[#1f2623] p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800"
+      >
+        <div class="flex gap-4">
+          <div
+            class="size-12 rounded-full bg-cover bg-center flex-shrink-0 border border-slate-200"
+            style="background-image: url('https://ui-avatars.com/api/?name={{ session.get('username') }}&background=random');"
+          ></div>
+          <div class="flex-1">
+            <form method="POST">
+              <input type="hidden" name="club_name" value="{{ club[1] }}" />
+              <textarea
+                name="message"
+                class="w-full bg-slate-50 dark:bg-slate-900/50 border-none rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-slate-400 transition-all resize-none h-24 font-medium"
+                placeholder="Kulüp üyelerine bir duyuru yap..."
+                required
+              ></textarea>
+              <div class="flex justify-end mt-3">
+                <button
+                  type="submit"
+                  class="bg-primary text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-primary-dark transition-colors shadow-lg shadow-primary/20 flex items-center gap-2"
+                >
+                  <span class="material-symbols-outlined text-[18px]"
+                    >send</span
+                  >
+                  Paylaş
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="flex items-center justify-between px-2">
+        <h3 class="text-xl font-bold text-slate-900 dark:text-white">
+          Duyuru Duvarı
+        </h3>
+        <span
+          class="text-xs font-bold text-primary bg-primary-light dark:bg-primary/20 px-3 py-1.5 rounded-full"
+        >
+          En Yeni
+        </span>
+      </div>
+
+      <div class="space-y-6">
+        {% for ann in announcements %}
+        <article
+          class="bg-white dark:bg-[#1f2623] rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden relative group hover:shadow-md transition-shadow"
+        >
+          <div class="p-6">
+            <div class="flex items-start gap-4 mb-4">
+              <div
+                class="size-12 rounded-full bg-cover bg-center border border-slate-200"
+                style="background-image: url('https://ui-avatars.com/api/?name={{ ann[2] }}&background=random');"
+              ></div>
+              <div class="flex flex-col">
+                <h4 class="text-base font-bold text-slate-900 dark:text-white">
+                  {{ ann[2] }}
+                </h4>
+                <div
+                  class="flex items-center gap-2 text-xs text-slate-400 font-medium"
+                >
+                  <span
+                    class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-md"
+                    >Yönetici</span
+                  >
+                  <span>•</span>
+                  <span>{{ ann[1].strftime('%d %B %H:%M') }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="pl-16">
+              <p
+                class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed font-medium bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl rounded-tl-none"
+              >
+                {{ ann[0] }}
+              </p>
+            </div>
+          </div>
+        </article>
+        {% else %}
+        <div
+          class="text-center py-12 bg-white dark:bg-[#1f2623] rounded-3xl border border-dashed border-slate-200 dark:border-slate-800"
+        >
+          <div
+            class="inline-flex items-center justify-center size-16 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-300 mb-4"
+          >
+            <span class="material-symbols-outlined text-3xl">campaign</span>
+          </div>
+          <h4 class="text-lg font-bold text-slate-900 dark:text-white">
+            Henüz Duyuru Yok
+          </h4>
+          <p class="text-slate-500 text-sm mt-1">
+            Yöneticiden gelecek haberleri bekle!
+          </p>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
 </div>
 {% endblock %}

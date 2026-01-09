@@ -9,130 +9,395 @@
 />
 
 <style>
-  /* Yol tarifi metin kutusunu gizle (Sadece çizgiyi göster) */
+  /* Harita Temizliği */
   .leaflet-routing-container {
     display: none !important;
   }
+
+  /* Marker Tasarımı */
+  .custom-div-icon {
+    background: transparent;
+    border: none;
+  }
+  .marker-pin {
+    width: 36px;
+    height: 36px;
+    border-radius: 50% 50% 50% 0;
+    background: #0ea5e9; /* Sky Blue */
+    position: absolute;
+    transform: rotate(-45deg);
+    left: 50%;
+    top: 50%;
+    margin: -18px 0 0 -18px;
+    box-shadow: -2px 2px 5px rgba(0, 0, 0, 0.4);
+  }
+  .marker-pin::after {
+    display: none;
+  }
+  .marker-pin-inner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(45deg);
+    z-index: 10;
+    font-weight: 800;
+    font-size: 14px;
+    color: #ffffff;
+    width: 100%;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+  }
+  .marker-start .marker-pin {
+    background: #10b981;
+  }
+  .marker-end .marker-pin {
+    background: #ef4444;
+  }
+
+  /* Scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 20px;
+  }
 </style>
 
-<div class="card mb-4 border-0 shadow-sm">
-  <div class="card-body p-5 bg-light rounded-3">
-    <div class="d-flex justify-content-between align-items-center">
-      <h1 class="display-5 fw-bold">{{ route[2] }}</h1>
-      <span class="badge bg-primary fs-5">{{ route[4] }}</span>
-    </div>
-
-    <p class="lead text-muted">
-      <i class="fas fa-user-edit"></i> Oluşturan:
-      <a href="/profile/{{ route[1] }}" class="text-decoration-none fw-bold"
-        >{{ route[7] }}</a
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 font-display">
+  <div
+    class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8"
+  >
+    <div class="space-y-3 w-full">
+      <nav
+        class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400"
       >
-    </p>
+        <a
+          class="hover:text-primary transition-colors"
+          href="{{ url_for('main.index') }}"
+          >Anasayfa</a
+        >
+        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+        <a
+          class="hover:text-primary transition-colors"
+          href="{{ url_for('main.routes') }}"
+          >Rotalar</a
+        >
+        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+        <span class="text-primary font-bold truncate max-w-[300px]"
+          >{{ route[2] }}</span
+        >
+      </nav>
 
-    <div class="d-flex gap-4 mt-4">
-      <div>
-        <i class="fas fa-ruler-horizontal fa-2x text-success"></i> <br />
-        <strong>{{ route[3] }} km</strong>
-      </div>
-      <div>
-        <i class="fas fa-hourglass-half fa-2x text-warning"></i> <br />
-        <strong>{{ route[5] }} dk</strong>
-      </div>
-      <div>
-        <i class="fas fa-calendar-alt fa-2x text-info"></i> <br />
-        <strong>{{ route[6].strftime('%Y') }}</strong>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="card border-0 shadow-sm mb-4">
-  <div class="card-body p-0">
-    <div
-      id="detailMap"
-      style="height: 400px; width: 100%; border-radius: 8px"
-    ></div>
-  </div>
-</div>
-
-<div class="row">
-  <div class="col-md-4">
-    <h4 class="mb-3">🚏 Duraklar</h4>
-    <ul class="list-group">
-      {% for stop in stops %}
-      <li class="list-group-item d-flex align-items-center">
-        <span class="badge bg-dark rounded-circle me-2">{{ stop[2] }}</span>
-        {{ stop[3] }}
-      </li>
-      {% else %}
-      <li class="list-group-item text-muted">Durak bilgisi yok.</li>
-      {% endfor %}
-    </ul>
-  </div>
-
-  <div class="col-md-8">
-    <h4 class="mb-3">💬 Değerlendirmeler ({{ reviews|length }})</h4>
-
-    <div class="card mb-4 bg-light border-0">
-      <div class="card-body">
-        <h6 class="card-title">Bir yorum yaz...</h6>
-        <form method="POST">
-          <div class="mb-2">
-            <select
-              name="rating"
-              class="form-select form-select-sm w-auto d-inline-block"
-              required
+      <div class="flex flex-col gap-2">
+        <h1
+          class="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-tight"
+        >
+          {{ route[2] }}
+        </h1>
+        <div class="flex items-center gap-4 mt-1">
+          <div class="flex items-center gap-1">
+            <span
+              class="material-symbols-outlined text-amber-500 text-[20px] fill-current"
+              >star</span
             >
-              <option value="5">⭐⭐⭐⭐⭐ (5)</option>
-              <option value="4">⭐⭐⭐⭐ (4)</option>
-              <option value="3">⭐⭐⭐ (3)</option>
-              <option value="2">⭐⭐ (2)</option>
-              <option value="1">⭐ (1)</option>
-            </select>
+            <span class="text-lg font-bold text-slate-900 dark:text-white"
+              >{{ "{:.1f}".format(route[8]) if route[8] else 'Yeni' }}</span
+            >
+            <span class="text-slate-500 text-sm"
+              >({{ reviews|length }} değerlendirme)</span
+            >
           </div>
-          <div class="mb-2">
-            <textarea
-              name="comment"
-              class="form-control"
-              rows="2"
-              placeholder="Rota nasıldı? Zemin nasıldı?"
-              required
-            ></textarea>
-          </div>
-          <button type="submit" class="btn btn-success btn-sm">Gönder</button>
-        </form>
-      </div>
-    </div>
-
-    {% for review in reviews %}
-    <div class="card mb-3">
-      <div class="card-body">
-        <div class="d-flex justify-content-between">
-          <div class="d-flex align-items-center">
-            <img
-              src="{{ review[4] if review[4] else 'https://ui-avatars.com/api/?name=' + review[3] }}"
-              class="rounded-circle me-2"
-              width="40"
-            />
-            <div>
-              <h6 class="mb-0 fw-bold">{{ review[3] }}</h6>
-              <small class="text-muted"
-                >{{ review[2].strftime('%d.%m.%Y') }}</small
-              >
-            </div>
-          </div>
-          <span class="text-warning">
-            {% for i in range(review[0]) %}⭐{% endfor %}
+          <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+          <span
+            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold {% if route[4] == 'Easy' %} bg-green-100 text-green-700 {% elif route[4] == 'Medium' %} bg-yellow-100 text-yellow-700 {% else %} bg-red-100 text-red-700 {% endif %}"
+          >
+            {{ route[4] }}
           </span>
         </div>
-        <p class="card-text mt-2">{{ review[1] }}</p>
       </div>
     </div>
-    {% else %}
-    <div class="alert alert-secondary">
-      Henüz yorum yapılmamış. İlk yorumu sen yap!
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+    <div class="lg:col-span-8 flex flex-col gap-8">
+      <div
+        class="relative w-full h-[450px] rounded-3xl overflow-hidden shadow-lg border border-slate-200 dark:border-[#2a362f] group bg-slate-100 dark:bg-[#151d19]"
+      >
+        <div id="detailMap" class="absolute inset-0 z-0"></div>
+
+        <div class="absolute top-6 left-6 z-[400]">
+          <div
+            class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-4 py-2 rounded-xl shadow-sm border border-white/50 dark:border-slate-700"
+          >
+            <span
+              class="text-xs font-black text-primary uppercase tracking-widest flex items-center gap-2"
+            >
+              <span class="material-symbols-outlined text-[16px]"
+                >touch_app</span
+              >
+              İnteraktif Harita
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="bg-white dark:bg-[#1e2621] p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-[#2a362f]"
+      >
+        <h3
+          class="text-xl font-bold mb-8 text-slate-900 dark:text-white flex items-center gap-2"
+        >
+          <span class="material-symbols-outlined text-primary">flag</span> Rota
+          Durakları
+        </h3>
+        <div class="relative pl-2">
+          <div
+            class="absolute left-[19px] top-2 bottom-6 w-0.5 bg-slate-200 dark:bg-slate-700"
+          ></div>
+
+          {% for stop in stops %}
+          <div class="relative flex gap-6 mb-8 last:mb-0 group">
+            <div
+              class="relative z-10 flex-shrink-0 size-10 rounded-full flex items-center justify-center border-4 border-white dark:border-[#1e2621] shadow-md {% if loop.first %} bg-green-500 text-white {% elif loop.last %} bg-red-500 text-white {% else %} bg-slate-100 dark:bg-slate-700 text-slate-500 {% endif %}"
+            >
+              {% if loop.first %}
+              <span class="material-symbols-outlined text-[20px]">flag</span>
+              {% elif loop.last %}
+              <span class="material-symbols-outlined text-[20px]"
+                >sports_score</span
+              >
+              {% else %}
+              <span class="text-sm font-bold">{{ loop.index }}</span>
+              {% endif %}
+            </div>
+
+            <div class="flex-1 pt-1">
+              <div class="flex justify-between items-start">
+                <h4 class="text-lg font-bold text-slate-900 dark:text-white">
+                  {{ stop[3] if stop[3] else ("Başlangıç Noktası" if loop.first
+                  else ("Bitiş Noktası" if loop.last else "Durak " ~
+                  loop.index)) }}
+                </h4>
+              </div>
+              <p class="text-sm text-slate-500 mt-1">
+                {% if loop.first %}Rotanın başladığı nokta.{% elif loop.last
+                %}Macera burada sona eriyor.{% else %}Ara durak noktası.{% endif
+                %}
+              </p>
+            </div>
+          </div>
+          {% else %}
+          <p class="text-slate-500">Durak bilgisi bulunamadı.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-6">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xl font-bold text-slate-900 dark:text-white">
+            Değerlendirmeler ({{ reviews|length }})
+          </h3>
+        </div>
+
+        <div
+          class="bg-white dark:bg-[#1e2621] p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-[#2a362f] flex gap-4"
+        >
+          <div class="shrink-0 hidden sm:block">
+            <div
+              class="size-12 rounded-full bg-cover bg-center border border-slate-200"
+              style="background-image: url('https://ui-avatars.com/api/?name={{ session.get('username', 'U') }}&background=random');"
+            ></div>
+          </div>
+          <div class="flex-1">
+            <form method="POST">
+              <textarea
+                name="comment"
+                class="w-full bg-slate-50 dark:bg-slate-900 border-none rounded-xl p-4 text-sm focus:ring-2 focus:ring-primary/20 resize-none h-24 placeholder-slate-400 font-medium"
+                placeholder="Deneyimini paylaş... Zemin nasıldı, manzara güzel miydi?"
+                required
+              ></textarea>
+              <div class="flex justify-between items-center mt-3">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-bold text-slate-500">Puanın:</span>
+                  <select
+                    name="rating"
+                    class="bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-sm font-bold text-slate-700 dark:text-white focus:ring-0 cursor-pointer py-1.5 pl-3 pr-8"
+                  >
+                    <option value="5">⭐⭐⭐⭐⭐ 5</option>
+                    <option value="4">⭐⭐⭐⭐ 4</option>
+                    <option value="3">⭐⭐⭐ 3</option>
+                    <option value="2">⭐⭐ 2</option>
+                    <option value="1">⭐ 1</option>
+                  </select>
+                </div>
+                <button
+                  type="submit"
+                  class="px-6 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-bold hover:opacity-90 transition-opacity"
+                >
+                  Gönder
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div
+          class="space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar pr-2"
+        >
+          {% for review in reviews %}
+          <div
+            class="bg-white dark:bg-[#1e2621] p-6 rounded-3xl border border-slate-100 dark:border-[#2a362f]"
+          >
+            <div class="flex justify-between items-start mb-3">
+              <div class="flex items-center gap-3">
+                <div
+                  class="size-10 rounded-full bg-cover bg-center border border-slate-100"
+                  style="background-image: url('{{ review[4] if review[4] else 'https://ui-avatars.com/api/?name=' + review[3] }}');"
+                ></div>
+                <div>
+                  <h5 class="font-bold text-sm text-slate-900 dark:text-white">
+                    {{ review[3] }}
+                  </h5>
+                  <p class="text-xs text-slate-400">
+                    {{ review[2].strftime('%d.%m.%Y') }}
+                  </p>
+                </div>
+              </div>
+              <div class="flex text-amber-400 text-[16px] gap-0.5">
+                {% for i in range(review[0]) %}<span
+                  class="material-symbols-outlined fill-current text-[18px]"
+                  >star</span
+                >{% endfor %}
+              </div>
+            </div>
+            <p
+              class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium"
+            >
+              {{ review[1] }}
+            </p>
+          </div>
+          {% else %}
+          <div
+            class="text-center py-8 text-slate-400 bg-slate-50 dark:bg-[#1e2621] rounded-3xl border border-dashed border-slate-200 dark:border-[#2a362f]"
+          >
+            <span class="material-symbols-outlined text-4xl mb-2"
+              >chat_bubble_outline</span
+            >
+            <p>Henüz değerlendirme yapılmamış.</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
     </div>
-    {% endfor %}
+
+    <div class="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
+      <div
+        class="bg-white dark:bg-[#1e2621] p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-[#2a362f]"
+      >
+        <h4
+          class="text-xs uppercase tracking-wider text-slate-400 font-bold mb-4"
+        >
+          Rota Bilgileri
+        </h4>
+        <div class="grid grid-cols-2 gap-4">
+          <div
+            class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl flex flex-col gap-1 text-center transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:bg-blue-50/50 dark:hover:bg-slate-700 cursor-default border border-transparent hover:border-blue-100 dark:hover:border-slate-600"
+          >
+            <span class="material-symbols-outlined text-primary mb-1"
+              >straighten</span
+            >
+            <span class="text-xs text-slate-400 font-bold uppercase"
+              >Mesafe</span
+            >
+            <span class="text-lg font-black text-slate-900 dark:text-white"
+              >{{ route[3] }} km</span
+            >
+          </div>
+          <div
+            class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl flex flex-col gap-1 text-center transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:bg-orange-50/50 dark:hover:bg-slate-700 cursor-default border border-transparent hover:border-orange-100 dark:hover:border-slate-600"
+          >
+            <span class="material-symbols-outlined text-orange-500 mb-1"
+              >schedule</span
+            >
+            <span class="text-xs text-slate-400 font-bold uppercase">Süre</span>
+            <span class="text-lg font-black text-slate-900 dark:text-white"
+              >{{ route[5] }} dk</span
+            >
+          </div>
+          <div
+            class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl flex flex-col gap-1 text-center transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:bg-purple-50/50 dark:hover:bg-slate-700 cursor-default border border-transparent hover:border-purple-100 dark:hover:border-slate-600"
+          >
+            <span class="material-symbols-outlined text-blue-500 mb-1"
+              >calendar_month</span
+            >
+            <span class="text-xs text-slate-400 font-bold uppercase"
+              >Tarih</span
+            >
+            <span class="text-lg font-black text-slate-900 dark:text-white"
+              >{{ route[6].strftime('%d.%m.%Y') }}</span
+            >
+          </div>
+          <div
+            class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl flex flex-col gap-1 text-center transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:bg-green-50/50 dark:hover:bg-slate-700 cursor-default border border-transparent hover:border-green-100 dark:hover:border-slate-600"
+          >
+            <span class="material-symbols-outlined text-green-600 mb-1"
+              >terrain</span
+            >
+            <span class="text-xs text-slate-400 font-bold uppercase"
+              >Zorluk</span
+            >
+            <span class="text-lg font-black text-slate-900 dark:text-white"
+              >{{ route[4] }}</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="bg-white dark:bg-[#1e2621] p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-[#2a362f]"
+      >
+        <h4
+          class="text-xs uppercase tracking-wider text-slate-400 font-bold mb-4"
+        >
+          Rotayı Oluşturan
+        </h4>
+        <div class="flex items-center gap-4">
+          <div class="relative">
+            <div
+              class="size-16 rounded-full bg-cover bg-center border-4 border-slate-50 dark:border-slate-800 shadow-sm"
+              style="background-image: url('https://ui-avatars.com/api/?name={{ route[7] }}&background=random');"
+            ></div>
+            <div
+              class="absolute -bottom-1 -right-1 bg-primary text-white text-[10px] px-2 py-0.5 rounded-full border-2 border-white font-bold"
+            >
+              PRO
+            </div>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-lg font-bold text-slate-900 dark:text-white"
+              >{{ route[7] }}</span
+            >
+            <span class="text-sm text-slate-500 font-medium">Doğa Tutkunu</span>
+          </div>
+        </div>
+        <a
+          href="{{ url_for('main.profile', user_id=route[1]) }}"
+          class="w-full mt-5 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-2"
+        >
+          Profile Git
+          <span class="material-symbols-outlined text-[16px]"
+            >arrow_forward</span
+          >
+        </a>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -140,46 +405,75 @@
 <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
 <script>
-  // Backend'den durakları çekiyoruz (Enlem, Boylam)
-  // stops tablosunda: 4. index latitude, 5. index longitude
+  // Backend'den durakları çekiyoruz
+  // stops: [id, route_id, stop_order, location_name, lat, lng]
   var rawStops = [
       {% for stop in stops %}
-          [{{ stop[4] }}, {{ stop[5] }}],
+          { lat: {{ stop[4] }}, lng: {{ stop[5] }}, name: "{{ stop[3] }}" },
       {% endfor %}
   ];
 
   if (rawStops.length > 0) {
       // Haritayı başlat
-      var map = L.map('detailMap').setView(rawStops[0], 13);
+      var map = L.map('detailMap', { zoomControl: false, scrollWheelZoom: false }).setView([rawStops[0].lat, rawStops[0].lng], 13);
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: 'OpenStreetMap'
+          attribution: '&copy; OpenStreetMap'
       }).addTo(map);
 
-      // Koordinatları L.latLng formatına çevir
-      var waypoints = rawStops.map(function(coords) {
-          return L.latLng(coords[0], coords[1]);
-      });
+      // İKON OLUŞTURUCU (Mavi Damla)
+      function createIcon(type, number) {
+          let bgClass = 'marker-pin';
+          let innerContent = number;
+          let customClass = '';
 
-      // OSRM MOTORU: Sokakları takip eden yolu çiz
+          if (type === 'start') {
+              customClass = 'marker-start';
+              innerContent = '<span class="material-symbols-outlined" style="font-size:18px; color: white;">flag</span>';
+          } else if (type === 'end') {
+              customClass = 'marker-end';
+              innerContent = '<span class="material-symbols-outlined" style="font-size:18px; color: white;">sports_score</span>';
+          }
+
+          return L.divIcon({
+              className: 'custom-div-icon ' + customClass,
+              html: `<div class='marker-pin'></div><div class='marker-pin-inner'>${innerContent}</div>`,
+              iconSize: [36, 36],
+              iconAnchor: [18, 36],
+              popupAnchor: [0, -30]
+          });
+      }
+
+      var waypoints = rawStops.map(s => L.latLng(s.lat, s.lng));
+
+      // ROTA ÇİZİMİ
       L.Routing.control({
           waypoints: waypoints,
           routeWhileDragging: false,
-          addWaypoints: false,       // Kullanıcı değiştiremesin
+          addWaypoints: false,
           draggableWaypoints: false,
-          fitSelectedRoutes: true,   // Haritayı yola oturt
-          show: false,               // Metin kutusunu gizle
+          fitSelectedRoutes: true,
+          show: false,
           lineOptions: {
-              styles: [{color: '#d63031', opacity: 0.8, weight: 6}] // Kırmızı Kalın Çizgi
+              styles: [{color: '#0ea5e9', opacity: 0.8, weight: 6}] // Mavi Çizgi (#0ea5e9 - Sky 500)
           },
-          createMarker: function(i, wp, nWps) {
-              // Pinleri isimlendir
-              var label = "";
-              if (i === 0) label = "Başlangıç 🏁";
-              else if (i === nWps - 1) label = "Bitiş 🏁";
-              else label = "Durak " + (i + 1);
+          createMarker: function(i, wp, n) {
+              let type = 'mid';
+              if (i === 0) type = 'start';
+              else if (i === n - 1) type = 'end';
 
-              return L.marker(wp.latLng).bindPopup(label);
+              // İsim Mantığı: Veritabanındaki ismi kullan, yoksa varsayılan
+              let stopName = rawStops[i].name ? rawStops[i].name : ("Durak " + (i+1));
+
+              // Başlangıç/Bitiş özel isimlendirme (Eğer DB'de özel isim yoksa)
+              if (!rawStops[i].name) {
+                  if (i === 0) stopName = "Başlangıç";
+                  else if (i === n - 1) stopName = "Bitiş";
+              }
+
+              return L.marker(wp.latLng, {
+                  icon: createIcon(type, i) // İkon numarası
+              }).bindPopup(`<div class='font-bold text-center text-slate-800'>${stopName}</div>`);
           }
       }).addTo(map);
   }

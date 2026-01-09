@@ -6,6 +6,47 @@ from db import get_db
 # url_prefix='/admin' sayesinde bu dosyadaki tüm linklerin başına otomatik '/admin' gelecek.
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
+#1. Seviye Renkleri
+RANK_COLORS = {
+    'gray':   {'label': 'Gri (Standart)', 'css': 'bg-gray-100 text-gray-600 border-gray-200'},
+    'green':  {'label': 'Yeşil (Doğa)',   'css': 'bg-green-100 text-green-700 border-green-200'},
+    'blue':   {'label': 'Mavi (Usta)',    'css': 'bg-blue-100 text-blue-700 border-blue-200'},
+    'yellow': {'label': 'Sarı (Altın)',   'css': 'bg-yellow-100 text-yellow-700 border-yellow-200'},
+    'purple': {'label': 'Mor (Efsane)',   'css': 'bg-purple-100 text-purple-700 border-purple-200'},
+    'red':    {'label': 'Kırmızı (Lider)', 'css': 'bg-red-100 text-red-700 border-red-200'}
+}
+
+# 2. Rozet İkonları 
+BADGE_ICONS = {
+    'fas fa-star': 'Yıldız',
+    'fas fa-medal': 'Madalya',
+    'fas fa-trophy': 'Kupa',
+    'fas fa-crown': 'Taç',
+    'fas fa-hiking': 'Yürüyüşçü',
+    'fas fa-mountain': 'Dağ',
+    'fas fa-leaf': 'Yaprak',
+    'fas fa-fire': 'Ateş',
+    'fas fa-shoe-prints': 'Ayak İzi',
+    'fas fa-map-marker-alt': 'Konum',
+    'fas fa-compass': 'Pusula'
+}
+
+# 3. EN ÜSTE BADGE_ICONS ALTINA EKLE:
+HOBBY_ICONS = {
+    'fas fa-hiking': 'Doğa Yürüyüşü',
+    'fas fa-campground': 'Kamp',
+    'fas fa-camera': 'Fotoğraf',
+    'fas fa-bicycle': 'Bisiklet',
+    'fas fa-running': 'Koşu',
+    'fas fa-swimmer': 'Yüzme',
+    'fas fa-spa': 'Yoga',
+    'fas fa-music': 'Müzik',
+    'fas fa-palette': 'Sanat',
+    'fas fa-book': 'Kitap',
+    'fas fa-gamepad': 'Oyun',
+    'fas fa-utensils': 'Yemek'
+}
+
 # ----------------------------------------------------
 # YARDIMCI FONKSİYONLAR (DECORATORS)
 # ----------------------------------------------------
@@ -39,15 +80,23 @@ def dashboard():
         stats['routes'] = cur.fetchone()[0]
         cur.execute("SELECT COUNT(*) FROM events")
         stats['events'] = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM clubs")
+        stats['clubs'] = cur.fetchone()[0]
+        cur.execute("SELECT COALESCE(SUM(total_points), 0) FROM users")
+        stats['total_points'] = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM participations")
+        stats['participations'] = cur.fetchone()[0]
         
-        # Listeler
+        # 1. Kullanıcılar
         cur.execute("SELECT user_id, username, email, role, created_at FROM users ORDER BY user_id DESC")
         users = cur.fetchall()
         
-        cur.execute("SELECT event_id, title, status FROM events ORDER BY event_date DESC LIMIT 20")
+        # 2. Etkinlikler (TARİH EKLENDİ: event_date)
+        cur.execute("SELECT event_id, title, status, event_date FROM events ORDER BY event_date DESC LIMIT 20")
         events = cur.fetchall()
         
-        cur.execute("SELECT route_id, route_name FROM routes ORDER BY created_at DESC LIMIT 20")
+        # 3. Rotalar (MESAFE ve TARİH EKLENDİ: distance_km, created_at)
+        cur.execute("SELECT route_id, route_name, distance_km, created_at FROM routes ORDER BY created_at DESC LIMIT 20")
         routes = cur.fetchall()
         
         # Tanımlamalar
@@ -56,8 +105,32 @@ def dashboard():
         
         cur.execute("SELECT * FROM badges ORDER BY badge_id DESC")
         badges = cur.fetchall()
+
+        # Rütbeler
+        try:
+            cur.execute("SELECT * FROM ranks ORDER BY min_points ASC")
+            ranks = cur.fetchall()
+        except:
+            ranks = []
+
+    # 4. Kulüpler (Listeleme için)
+        cur.execute("""
+            SELECT c.club_id, c.club_name, u.username, 
+                   (SELECT COUNT(*) FROM club_members cm WHERE cm.club_id = c.club_id),
+                   c.created_at, c.club_image_url
+            FROM clubs c
+            LEFT JOIN users u ON c.owner_id = u.user_id
+            ORDER BY c.created_at DESC
+        """)
+        clubs = cur.fetchall()
+
+    # badge_icons parametresi eklendi
+    return render_template('admin_dashboard.html', 
+                           stats=stats, users=users, events=events, 
+                           routes=routes, hobbies=hobbies, badges=badges, 
+                           ranks=ranks, rank_colors=RANK_COLORS, 
+                           badge_icons=BADGE_ICONS, hobby_icons=HOBBY_ICONS, clubs=clubs)
     
-    return render_template('admin_dashboard.html', stats=stats, users=users, events=events, routes=routes, hobbies=hobbies, badges=badges)
 
 @admin_bp.route('/delete_user/<int:user_id>')
 @admin_required
@@ -135,6 +208,9 @@ def delete_content(type, id):
                 cur.execute("DELETE FROM route_reviews WHERE route_id = %s", (id,))
                 cur.execute("DELETE FROM events WHERE route_id = %s", (id,)) 
                 cur.execute("DELETE FROM routes WHERE route_id = %s", (id,))
+            elif type == 'club':
+                # CASCADE sayesinde üyeler ve duyurular otomatik silinir.
+                cur.execute("DELETE FROM clubs WHERE club_id = %s", (id,))    
             
             conn.commit()
             flash("İçerik silindi.", "success")
@@ -177,14 +253,18 @@ def delete_badge(badge_id):
 @admin_required
 def add_hobby():
     name = request.form['hobby_name']
+    # Formdan ikon gelmezse varsayılan yıldız olsun
+    icon = request.form.get('icon_url', 'fas fa-star') 
+    
     with get_db() as conn:
         cur = conn.cursor()
         try:
-            cur.execute("INSERT INTO hobbies (hobby_name) VALUES (%s)", (name,))
+            # İkon sütunu veritabanına eklendiği için sorguyu güncelledik
+            cur.execute("INSERT INTO hobbies (hobby_name, icon) VALUES (%s, %s)", (name, icon))
             conn.commit()
             flash("İlgi alanı eklendi.", "success")
-        except:
-            flash("Hata oluştu.", "danger")
+        except Exception as e:
+            flash(f"Hata: {e}", "danger")
             
     return redirect(url_for('admin.dashboard'))
 
@@ -209,5 +289,42 @@ def add_badge():
             current_app.logger.error(f"Hata Mesajı: {e}")
             print(e)
             flash("Hata oluştu.", "danger")
+            
+    return redirect(url_for('admin.dashboard'))
+
+# [YENİ] RÜTBE EKLEME VE SİLME FONKSİYONLARI
+@admin_bp.route('/add_rank', methods=['POST'])
+@admin_required
+def add_rank():
+    name = request.form['name']
+    min_points = request.form['min_points']
+    color_key = request.form['color_key']
+    
+    # Seçilen rengin CSS kodunu al
+    selected_css = RANK_COLORS.get(color_key, RANK_COLORS['gray'])['css']
+
+    with get_db() as conn:
+        cur = conn.cursor()
+        try:
+            cur.execute("INSERT INTO ranks (name, min_points, color_class) VALUES (%s, %s, %s)", 
+                        (name, min_points, selected_css))
+            conn.commit()
+            flash("Yeni rütbe eklendi.", "success")
+        except Exception as e:
+            flash(f"Hata (Muhtemelen bu puan zaten kayıtlı): {e}", "danger")
+            
+    return redirect(url_for('admin.dashboard'))
+
+@admin_bp.route('/delete_rank/<int:rank_id>')
+@admin_required
+def delete_rank(rank_id):
+    with get_db() as conn:
+        cur = conn.cursor()
+        try:
+            cur.execute("DELETE FROM ranks WHERE rank_id = %s", (rank_id,))
+            conn.commit()
+            flash("Rütbe silindi.", "success")
+        except Exception as e:
+            flash(f"Hata: {e}", "danger")
             
     return redirect(url_for('admin.dashboard'))

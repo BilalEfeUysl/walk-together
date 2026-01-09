@@ -1,68 +1,139 @@
-{% extends 'base.html' %} {% block content %}
+{% extends "base.html" %} {% block content %}
 <div
-  class="row justify-content-center align-items-center"
-  style="min-height: 60vh"
+  class="min-h-[calc(100vh-5rem)] w-full flex flex-col lg:flex-row overflow-hidden"
 >
-  <div class="col-md-5">
-    <div class="card border-0 shadow-lg">
-      <div class="card-body p-5">
-        <div class="text-center mb-4">
-          <h2 class="fw-bold text-primary">Tekrar Hoşgeldin! 👋</h2>
-          <p class="text-muted">Walk Together hesabına giriş yap.</p>
-        </div>
+  <div
+    class="hidden lg:flex w-full lg:w-[45%] relative flex-col justify-end bg-cover bg-center overflow-hidden"
+    style="
+      background-image: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2070&auto=format&fit=crop');
+    "
+  >
+    <div
+      class="absolute inset-0 bg-primary/40 dark:bg-black/40 mix-blend-multiply z-0"
+    ></div>
+    <div
+      class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 z-0"
+    ></div>
 
-        {% with messages = get_flashed_messages(with_categories=true) %} {% if
-        messages %} {% for category, message in messages %}
-        <div
-          class="alert alert-{{ category }} alert-dismissible fade show"
-          role="alert"
+    <div class="relative z-10 px-12 pb-20 flex flex-col">
+      <div class="max-w-md">
+        <span
+          class="material-symbols-outlined text-secondary text-5xl mb-4 opacity-80"
+          >format_quote</span
         >
-          {{ message }}
-          <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="alert"
-          ></button>
+        <h2
+          class="text-white text-4xl font-bold leading-tight mb-4 tracking-tight drop-shadow-sm"
+        >
+          Dağlar çağırıyor ve gitmeliyim.
+        </h2>
+        <p class="text-white/80 text-lg font-medium">— John Muir</p>
+        <div class="mt-8 flex gap-2">
+          <div class="h-1.5 w-12 bg-white rounded-full"></div>
+          <div class="h-1.5 w-3 bg-white/40 rounded-full"></div>
+          <div class="h-1.5 w-3 bg-white/40 rounded-full"></div>
         </div>
-        {% endfor %} {% endif %} {% endwith %}
+      </div>
+    </div>
+  </div>
 
-        <form method="POST" action="{{ url_for('auth.login') }}">
-          <div class="mb-3">
-            <label class="form-label fw-bold">Kullanıcı Adı</label>
+  <div
+    class="flex-1 flex flex-col justify-center items-center p-6 sm:p-12 lg:p-24 bg-background-light dark:bg-background-dark relative"
+  >
+    <div class="w-full max-w-[420px] flex flex-col gap-8 animate-fade-in-up">
+      <div class="flex flex-col gap-2">
+        <h1
+          class="text-3xl sm:text-4xl font-bold text-text-dark dark:text-white tracking-tight"
+        >
+          Tekrar Hoşgeldin
+        </h1>
+        <p class="text-slate-500 dark:text-slate-400 text-base font-normal">
+          Maceraya hazır mısın? Bilgilerini gir ve devam et.
+        </p>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %}
+      <div class="flex flex-col gap-2">
+        {% for category, message in messages %}
+        <div
+          class="p-4 rounded-xl text-sm font-medium border flex items-center gap-2 {% if category == 'success' %} bg-green-50 text-green-800 border-green-200 {% elif category == 'error' or category == 'danger' %} bg-red-50 text-red-800 border-red-200 {% else %} bg-blue-50 text-blue-800 border-blue-200 {% endif %}"
+        >
+          <span class="material-symbols-outlined text-lg">info</span>
+          {{ message }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %} {% endwith %}
+
+      <form
+        action="{{ url_for('auth.login') }}"
+        method="POST"
+        class="flex flex-col gap-5"
+      >
+        <label class="flex flex-col gap-2">
+          <span class="text-sm font-semibold text-text-dark dark:text-slate-200"
+            >Kullanıcı Adı</span
+          >
+          <div class="relative group">
+            <span
+              class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors duration-200 material-symbols-outlined text-xl"
+            >
+              person
+            </span>
             <input
-              type="text"
-              class="form-control form-control-lg bg-light"
               name="username"
               required
+              class="w-full pl-12 pr-4 h-14 rounded-xl border border-border-light dark:border-border-dark bg-slate-50 dark:bg-surface-dark text-text-dark dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 ease-out font-medium"
+              placeholder="Kullanıcı Adınız"
+              type="text"
             />
           </div>
-          <div class="mb-4">
-            <label class="form-label fw-bold">Şifre</label>
+        </label>
+
+        <label class="flex flex-col gap-2">
+          <div class="flex justify-between items-center">
+            <span
+              class="text-sm font-semibold text-text-dark dark:text-slate-200"
+              >Şifre</span
+            >
+          </div>
+          <div class="relative group">
+            <span
+              class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors duration-200 material-symbols-outlined text-xl"
+            >
+              lock
+            </span>
             <input
-              type="password"
-              class="form-control form-control-lg bg-light"
               name="password"
               required
+              class="w-full pl-12 pr-4 h-14 rounded-xl border border-border-light dark:border-border-dark bg-slate-50 dark:bg-surface-dark text-text-dark dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 ease-out font-medium"
+              placeholder="••••••••"
+              type="password"
             />
           </div>
-          <button
-            type="submit"
-            class="btn btn-primary w-100 py-3 rounded-pill fw-bold fs-5 shadow-sm"
-          >
-            Giriş Yap
-          </button>
-        </form>
+        </label>
 
-        <div class="text-center mt-4">
-          <small class="text-muted"
-            >Hesabın yok mu?
-            <a
-              href="{{ url_for('auth.register') }}"
-              class="fw-bold text-primary text-decoration-none"
-              >Hemen Kayıt Ol</a
-            ></small
+        <button
+          type="submit"
+          class="w-full h-14 mt-2 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl shadow-lg shadow-primary/30 active:shadow-none active:scale-[0.99] transition-all duration-200 flex items-center justify-center gap-2 group"
+        >
+          <span>Giriş Yap</span>
+          <span
+            class="material-symbols-outlined group-hover:translate-x-1 transition-transform duration-200 text-lg"
+            >arrow_forward</span
           >
-        </div>
+        </button>
+      </form>
+
+      <div class="text-center pt-4">
+        <p class="text-slate-500 dark:text-slate-400">
+          Hesabın yok mu?
+          <a
+            class="text-primary font-bold hover:text-primary-hover hover:underline transition-colors ml-1"
+            href="{{ url_for('auth.register') }}"
+            >Kayıt Ol</a
+          >
+        </p>
       </div>
     </div>
   </div>

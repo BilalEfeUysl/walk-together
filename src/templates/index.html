@@ -1,157 +1,246 @@
-{% extends 'base.html' %} {% block content %}
-
-<div
-  class="hero-header d-flex flex-column justify-content-center align-items-center"
->
-  <h1 class="display-4">Doğaya Adım At 🌲</h1>
-  <p class="lead fs-4 opacity-75 mb-4 col-lg-8">
-    Şehrin gürültüsünden uzaklaş. Yeni rotalar keşfet, topluluklara katıl ve
-    harekete geç.
-  </p>
-  <div class="d-flex gap-3">
-    <a href="{{ url_for('main.routes') }}" class="btn btn-primary btn-lg">
-      <i class="fas fa-map-marked-alt me-2"></i>Rotaları Keşfet
-    </a>
-    <a
-      href="{{ url_for('main.clubs') }}"
-      class="btn btn-light btn-lg text-dark fw-bold"
+{% extends "base.html" %} {% block content %}
+<header class="relative w-full mb-12">
+  <div class="max-w-[1400px] mx-auto p-4 lg:p-6">
+    <div
+      class="relative rounded-3xl overflow-hidden min-h-[560px] flex items-center justify-center bg-slate-900 shadow-2xl"
     >
-      <i class="fas fa-users me-2"></i>Kulüpler
-    </a>
-  </div>
-</div>
-
-<div class="row g-5">
-  <div class="col-lg-8">
-    <div class="d-flex justify-content-between align-items-end mb-4">
-      <div>
-        <h3 class="fw-bold mb-1">Popüler Rotalar 🔥</h3>
-        <p class="text-muted mb-0">
-          Bu hafta en çok yürüyüş yapılan parkurlar.
-        </p>
+      <div class="absolute inset-0 z-0">
+        <img
+          alt="Hiking background"
+          class="w-full h-full object-cover opacity-80"
+          src="https://images.unsplash.com/photo-1551632811-561732d1e306?q=80&w=2070&auto=format&fit=crop"
+        />
+        <div
+          class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10"
+        ></div>
       </div>
-      <a
-        href="{{ url_for('main.routes') }}"
-        class="text-decoration-none fw-bold"
-        style="color: var(--primary)"
-        >Tümünü Gör <i class="fas fa-arrow-right"></i
-      ></a>
-    </div>
 
-    <div class="row g-4">
-      {% for route in popular_routes %}
-      <div class="col-md-6">
-        <div class="card h-100">
-          <div class="position-relative">
+      <div class="relative z-10 text-center max-w-2xl px-6">
+        <div
+          class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm border border-white/10 text-white text-sm font-medium mb-6 animate-pulse"
+        >
+          <span class="w-2 h-2 rounded-full bg-green-400"></span>
+          Toplam {{ stats['routes'] }} Rota Yayında
+        </div>
+        <h1
+          class="text-5xl md:text-7xl font-black text-white tracking-tight leading-tight mb-6 drop-shadow-lg"
+        >
+          Doğaya <span class="text-green-400">Adım At</span>
+        </h1>
+        <p
+          class="text-lg md:text-xl text-slate-200 font-medium leading-relaxed mb-10 max-w-lg mx-auto"
+        >
+          Şehir gürültüsünden kaçın. Yeni rotalar keşfet, topluluklara katıl ve
+          birlikte harekete geç.
+        </p>
+        <div
+          class="flex flex-col sm:flex-row items-center justify-center gap-4"
+        >
+          <a
+            href="{{ url_for('main.routes') }}"
+            class="w-full sm:w-auto px-8 py-4 bg-primary hover:bg-green-700 text-white font-bold rounded-2xl transition-all shadow-lg hover:shadow-green-900/20 flex items-center justify-center gap-2"
+          >
+            Rotaları Keşfet
+            <span class="material-symbols-outlined text-sm">arrow_outward</span>
+          </a>
+          <a
+            href="{{ url_for('main.clubs') }}"
+            class="w-full sm:w-auto px-8 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/30 font-bold rounded-2xl transition-all flex items-center justify-center gap-2"
+          >
+            Kulüpleri Bul
+            <span class="material-symbols-outlined text-sm">groups</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12">
+    <div class="lg:col-span-8 flex flex-col gap-8">
+      <div class="flex items-end justify-between">
+        <div>
+          <h2
+            class="text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2"
+          >
+            Popüler Rotalar <span class="text-2xl">🔥</span>
+          </h2>
+          <p class="text-slate-500 dark:text-slate-400 mt-2">
+            Bu hafta en çok ilgi gören parkurlar.
+          </p>
+        </div>
+        <a
+          class="hidden sm:flex items-center text-primary font-bold text-sm hover:underline"
+          href="{{ url_for('main.routes') }}"
+        >
+          Tümünü Gör
+          <span class="material-symbols-outlined text-sm ml-1"
+            >chevron_right</span
+          >
+        </a>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% for route in popular_routes %}
+        <div
+          class="group bg-white dark:bg-slate-800 rounded-3xl p-3 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-100 dark:border-slate-700/50"
+        >
+          <div class="relative h-48 w-full overflow-hidden rounded-2xl">
             <img
-              src="https://loremflickr.com/600/400/forest,path?lock={{ loop.index }}"
-              class="card-img-top"
-              alt="Rota"
+              alt="{{ route[0] }}"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80"
             />
-            <span
-              class="position-absolute top-0 end-0 m-3 badge bg-white text-dark shadow-sm"
+
+            <div
+              class="absolute top-3 right-3 bg-white/90 backdrop-blur text-slate-800 text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm"
             >
-              ⭐ {{ route[5] if route[5] else 'Yeni' }}
-            </span>
+              {{ route[1] }}
+            </div>
           </div>
 
-          <div class="card-body">
-            <div class="d-flex justify-content-between mb-2">
-              <span class="badge bg-light text-dark border"
-                >{{ route[1] }}</span
+          <div class="p-4">
+            <div class="flex justify-between items-start mb-2">
+              <h3
+                class="text-lg font-bold text-slate-900 dark:text-white line-clamp-1"
               >
-              <small class="text-muted fw-bold"
-                ><i class="fas fa-ruler-horizontal text-primary"></i> {{
-                route[2] }} km</small
-              >
+                {{ route[0] }}
+              </h3>
+              <div class="flex items-center gap-1 text-slate-500 text-sm">
+                <span
+                  class="material-symbols-outlined text-base text-yellow-500"
+                  >star</span
+                >
+                <span class="font-semibold text-slate-800 dark:text-slate-200"
+                  >{{ route[5] }}</span
+                >
+              </div>
             </div>
 
-            <h5 class="card-title fw-bold mb-3 text-truncate">
-              {{ route[0] }}
-            </h5>
+            <div class="flex items-center gap-4 text-slate-500 text-sm mb-5">
+              <div class="flex items-center gap-1">
+                <span class="material-symbols-outlined text-lg text-primary"
+                  >distance</span
+                >
+                {{ route[2] }} km
+              </div>
+              <div class="flex items-center gap-1">
+                <span class="material-symbols-outlined text-lg text-primary"
+                  >person</span
+                >
+                {{ route[3] }}
+              </div>
+            </div>
 
-            <div class="d-flex align-items-center justify-content-between">
-              <small class="text-muted">
-                <i class="fas fa-user-circle"></i> {{ route[3] }}
-              </small>
+            <div
+              class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700"
+            >
               <a
                 href="{{ url_for('main.route_detail', route_id=route[7]) }}"
-                class="btn btn-sm btn-outline-dark rounded-pill px-3"
+                class="w-full text-center bg-sage dark:bg-slate-700 text-primary dark:text-green-400 px-4 py-2 rounded-xl text-sm font-bold hover:bg-primary hover:text-white transition-colors"
               >
                 İncele
               </a>
             </div>
           </div>
         </div>
+        {% endfor %}
       </div>
-      {% endfor %}
     </div>
-  </div>
 
-  <div class="col-lg-4">
-    <div class="stats-card shadow-lg mb-5">
-      <h2 class="display-5 fw-bold mb-0">{{ stats.users }}</h2>
-      <p class="opacity-75 mb-4">Aktif Doğa Sever</p>
+    <div class="lg:col-span-4 flex flex-col gap-8">
+      <div
+        class="bg-primary text-white rounded-3xl p-6 shadow-lg relative overflow-hidden"
+      >
+        <div
+          class="absolute top-0 right-0 -mt-8 -mr-8 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"
+        ></div>
+
+        <h3
+          class="text-xl font-bold mb-6 relative z-10 flex items-center gap-2"
+        >
+          Topluluk Nabzı
+          <span class="material-symbols-outlined animate-pulse">ecg_heart</span>
+        </h3>
+
+        <div class="grid grid-cols-2 gap-4 relative z-10">
+          <div
+            class="bg-white/10 backdrop-blur-sm p-4 rounded-2xl border border-white/10"
+          >
+            <span class="material-symbols-outlined text-green-300 mb-1"
+              >groups</span
+            >
+            <div class="text-2xl font-bold">{{ stats['users'] }}</div>
+            <div class="text-xs text-green-100 opacity-80">Doğa Sever</div>
+          </div>
+          <div
+            class="bg-white/10 backdrop-blur-sm p-4 rounded-2xl border border-white/10"
+          >
+            <span class="material-symbols-outlined text-green-300 mb-1"
+              >map</span
+            >
+            <div class="text-2xl font-bold">{{ stats['routes'] }}</div>
+            <div class="text-xs text-green-100 opacity-80">Rota</div>
+          </div>
+          <div
+            class="col-span-2 bg-white/10 backdrop-blur-sm p-4 rounded-2xl border border-white/10 flex items-center justify-between"
+          >
+            <div>
+              <div class="text-2xl font-bold">{{ stats['events'] }}</div>
+              <div class="text-xs text-green-100 opacity-80">Etkinlik</div>
+            </div>
+            <div
+              class="h-10 w-10 bg-green-400 text-primary rounded-full flex items-center justify-center"
+            >
+              <span class="material-symbols-outlined">calendar_month</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div
-        class="d-flex justify-content-between border-top border-white border-opacity-25 pt-3"
+        class="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700/50 flex flex-col overflow-hidden"
       >
-        <div class="text-center">
-          <h4 class="fw-bold mb-0">{{ stats.routes }}</h4>
-          <small class="opacity-75">Rota</small>
+        <div class="p-6 pb-2 flex justify-between items-center">
+          <h3 class="text-xl font-bold text-slate-900 dark:text-white">
+            Lider Tablosu
+          </h3>
+          <a
+            href="{{ url_for('main.leaderboard') }}"
+            class="text-xs font-bold text-primary hover:underline"
+            >Tümü</a
+          >
         </div>
-        <div class="text-center">
-          <h4 class="fw-bold mb-0">{{ stats.events }}</h4>
-          <small class="opacity-75">Etkinlik</small>
-        </div>
-        <div class="text-center">
-          <h4 class="fw-bold mb-0">12</h4>
-          <small class="opacity-75">Kulüp</small>
-        </div>
-      </div>
-    </div>
+        <div class="flex flex-col">
+          {% for leader in leaders %}
+          <div
+            class="flex items-center gap-4 px-6 py-4 border-b border-slate-50 dark:border-slate-700/30 last:border-0"
+          >
+            <div class="text-base font-bold text-slate-400 w-4">
+              {{ loop.index }}
+            </div>
 
-    <div class="card p-3 border-0 shadow-sm" style="background: #fff">
-      <div class="d-flex justify-content-between align-items-center mb-3 px-2">
-        <h5 class="fw-bold mb-0">🏆 Lider Tablosu</h5>
-        <a
-          href="{{ url_for('main.leaderboard') }}"
-          class="small text-muted text-decoration-none"
-          >Tümü</a
-        >
-      </div>
+            <div
+              class="h-10 w-10 rounded-full bg-cover bg-center"
+              style="background-image: url('https://ui-avatars.com/api/?name={{ leader[1] }}&background=random');"
+            ></div>
 
-      <div class="d-flex flex-column gap-2">
-        {% for leader in leaders %}
-        <div class="leader-item d-flex align-items-center p-2">
-          <div class="rank-badge rank-{{ loop.index }} me-3">
-            {{ loop.index }}
+            <div class="flex-1">
+              <a
+                href="{{ url_for('main.profile', user_id=leader[4]) }}"
+                class="text-sm font-bold text-slate-900 dark:text-white hover:text-primary transition-colors"
+              >
+                {{ leader[1] }}
+              </a>
+              <div class="text-xs text-slate-500">{{ leader[2] }}</div>
+            </div>
+            <div class="text-sm font-bold text-primary">{{ leader[3] }} P</div>
           </div>
-
-          <img
-            src="https://ui-avatars.com/api/?name={{ leader[1] }}&background=random&rounded=true"
-            class="rounded-circle me-3"
-            width="40"
-          />
-
-          <div class="flex-grow-1">
-            <a
-              href="{{ url_for('main.profile', user_id=leader[4]) }}"
-              class="text-dark text-decoration-none fw-bold d-block lh-1"
-            >
-              {{ leader[1] }}
-            </a>
-            <small class="text-muted" style="font-size: 0.75rem"
-              >{{ leader[2] }}</small
-            >
-          </div>
-
-          <span class="fw-bold text-success">{{ leader[3] }}P</span>
+          {% endfor %}
         </div>
-        {% endfor %}
       </div>
     </div>
   </div>
 </div>
-
 {% endblock %}

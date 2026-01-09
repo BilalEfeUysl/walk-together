@@ -1,61 +1,372 @@
-{% extends 'base.html' %}
+{% extends "base.html" %} {% block content %} {% set my_username = none %} {% if
+current_user is defined and current_user.is_authenticated %} {% set my_username
+= current_user.username %} {% elif session is defined and
+session.get('username') %} {% set my_username = session.get('username') %} {%
+endif %} {% set ns = namespace(found=false, rank=0, points=0) %} {% for leader
+in leaders %} {% if leader[1] == my_username %} {% set ns.found = true %} {% set
+ns.rank = loop.index %} {% set ns.points = leader[3] %} {% endif %} {% endfor %}
 
-{% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-10">
-        
-        <div class="text-center mb-5">
-            <h1 class="display-5 fw-bold text-warning"><i class="fas fa-trophy"></i> Liderlik Tablosu</h1>
-            <p class="lead text-muted">En çok yürüyen, en çok puan toplayan şampiyonlar.</p>
-        </div>
-
-        <div class="card shadow-lg border-0">
-            <div class="card-body p-0">
-                <table class="table table-hover table-striped mb-0 text-center align-middle">
-                    <thead class="bg-dark text-white">
-                        <tr>
-                            <th scope="col" class="py-3"># Sıra</th>
-                            <th scope="col" class="py-3">Kullanıcı</th>
-                            <th scope="col" class="py-3">Rol</th>
-                            <th scope="col" class="py-3">Toplam Puan</th>
-                            <th scope="col" class="py-3">Profil</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for leader in leaders %}
-                        <tr class="
-                            {% if loop.index == 1 %} table-warning fw-bold
-                            {% elif loop.index == 2 %} table-secondary
-                            {% elif loop.index == 3 %} table-light
-                            {% endif %}
-                        ">
-                            <td>
-                                {% if loop.index == 1 %} 🥇 1
-                                {% elif loop.index == 2 %} 🥈 2
-                                {% elif loop.index == 3 %} 🥉 3
-                                {% else %} {{ loop.index }}
-                                {% endif %}
-                            </td>
-                            <td>
-                                <img src="https://ui-avatars.com/api/?name={{ leader[1] }}&background=random&size=32" class="rounded-circle me-2">
-                                {{ leader[1] }}
-                            </td>
-                            <td>
-                                <span class="badge bg-secondary">{{ leader[2] }}</span>
-                            </td>
-                            <td class="fs-5">{{ leader[3] }} Puan</td>
-                            <td>
-                                <a href="/profile/{{ leader[4] }}" class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-eye"></i> İncele
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
+<div
+  class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white overflow-x-hidden min-h-screen flex flex-col"
+>
+  <div
+    class="relative w-full bg-gradient-to-b from-primary/5 to-transparent pb-8 pt-8 px-4"
+  >
+    <div
+      class="absolute inset-0 overflow-hidden opacity-30 pointer-events-none select-none"
+    >
+      <svg
+        class="absolute bottom-0 left-0 w-full text-primary/10"
+        fill="currentColor"
+        viewbox="0 0 1440 320"
+      >
+        <path
+          d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,224C672,245,768,267,864,250.7C960,235,1056,181,1152,165.3C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+          fill-opacity="1"
+        ></path>
+      </svg>
     </div>
+
+    <div class="max-w-5xl mx-auto relative z-10">
+      <div class="text-center mb-12 space-y-2">
+        <h1
+          class="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight flex justify-center items-center gap-3"
+        >
+          <span class="material-symbols-outlined text-4xl text-amber-500 filled"
+            >trophy</span
+          >
+          Liderlik Tablosu
+        </h1>
+        <p class="text-secondary dark:text-slate-400 text-lg">
+          Zirveye oynayan şampiyonlar.
+        </p>
+      </div>
+
+      {% if leaders and leaders|length > 0 %}
+      <div
+        class="flex flex-col md:flex-row items-end justify-center gap-4 md:gap-6 min-h-[350px] pb-8"
+      >
+        {% if leaders|length > 2 %} {% set third = leaders[2] %}
+        <div
+          class="order-2 md:order-1 flex-1 max-w-[260px] w-full flex flex-col items-center"
+        >
+          <a
+            href="/profile/{{ third[4] }}"
+            class="relative w-full bg-white dark:bg-[#1e2a24] rounded-t-3xl rounded-b-xl p-6 shadow-soft border-t-4 border-orange-400 flex flex-col items-center group hover:-translate-y-2 transition-transform duration-300 h-[240px] justify-end cursor-pointer block text-decoration-none"
+          >
+            <div class="absolute -top-10 left-1/2 -translate-x-1/2">
+              <div
+                class="size-20 rounded-full p-1 bg-gradient-to-tr from-orange-400 to-orange-200 shadow-lg"
+              >
+                <div
+                  class="w-full h-full rounded-full bg-cover bg-center border-4 border-white dark:border-[#1e2a24]"
+                  style="background-image: url('{{ third[5] if third[5] else 'https://ui-avatars.com/api/?name=' + third[1] + '&background=random&size=128' }}')"
+                ></div>
+              </div>
+              <div
+                class="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-orange-500 text-white size-7 flex items-center justify-center rounded-full font-black text-sm shadow-md ring-2 ring-white dark:ring-[#1e2a24]"
+              >
+                3
+              </div>
+            </div>
+            <div class="text-center mt-8">
+              <h3
+                class="text-lg font-bold text-slate-900 dark:text-white truncate max-w-[180px]"
+              >
+                {{ third[1] }}
+              </h3>
+              <span
+                class="text-xs font-bold text-orange-500 uppercase tracking-widest"
+                >Bronz</span
+              >
+            </div>
+            <div
+              class="mt-4 bg-orange-50 dark:bg-orange-900/20 px-4 py-1.5 rounded-lg text-orange-700 dark:text-orange-300 font-black text-lg"
+            >
+              {{ third[3] }} P
+            </div>
+          </a>
+        </div>
+        {% endif %} {% if leaders|length > 0 %} {% set first = leaders[0] %}
+        <div
+          class="order-1 md:order-2 flex-1 max-w-[300px] w-full flex flex-col items-center z-20"
+        >
+          <div class="mb-2 text-amber-400 animate-bounce">
+            <span
+              class="material-symbols-outlined text-5xl drop-shadow-lg filled"
+              >crown</span
+            >
+          </div>
+          <a
+            href="/profile/{{ first[4] }}"
+            class="relative w-full bg-gradient-to-b from-white to-amber-50 dark:from-[#1e2a24] dark:to-[#1e2a24] rounded-t-3xl rounded-b-xl p-6 shadow-xl border-t-4 border-amber-400 flex flex-col items-center transform hover:scale-105 transition-transform duration-300 h-[290px] justify-end cursor-pointer block text-decoration-none"
+          >
+            <div class="absolute -top-12 left-1/2 -translate-x-1/2">
+              <div
+                class="size-28 rounded-full p-1.5 bg-gradient-to-tr from-amber-300 via-yellow-400 to-amber-200 shadow-xl"
+              >
+                <div
+                  class="w-full h-full rounded-full bg-cover bg-center border-[5px] border-white dark:border-[#1e2a24]"
+                  style="background-image: url('{{ first[5] if first[5] else 'https://ui-avatars.com/api/?name=' + first[1] + '&background=random&size=128' }}')"
+                ></div>
+              </div>
+              <div
+                class="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-amber-500 text-white size-9 flex items-center justify-center rounded-full font-black text-lg shadow-md ring-4 ring-white dark:ring-[#1e2a24]"
+              >
+                1
+              </div>
+            </div>
+            <div class="text-center mt-10">
+              <h3
+                class="text-2xl font-black text-slate-900 dark:text-white truncate max-w-[220px]"
+              >
+                {{ first[1] }}
+              </h3>
+              <span
+                class="text-xs font-bold text-amber-600 uppercase tracking-widest"
+                >Şampiyon</span
+              >
+            </div>
+            <div
+              class="mt-5 bg-amber-100 dark:bg-amber-900/30 px-6 py-2 rounded-xl text-amber-800 dark:text-amber-300 font-black text-2xl shadow-sm"
+            >
+              {{ first[3] }} Puan
+            </div>
+          </a>
+        </div>
+        {% endif %} {% if leaders|length > 1 %} {% set second = leaders[1] %}
+        <div
+          class="order-3 md:order-3 flex-1 max-w-[260px] w-full flex flex-col items-center"
+        >
+          <a
+            href="/profile/{{ second[4] }}"
+            class="relative w-full bg-white dark:bg-[#1e2a24] rounded-t-3xl rounded-b-xl p-6 shadow-soft border-t-4 border-slate-300 flex flex-col items-center group hover:-translate-y-2 transition-transform duration-300 h-[260px] justify-end cursor-pointer block text-decoration-none"
+          >
+            <div class="absolute -top-10 left-1/2 -translate-x-1/2">
+              <div
+                class="size-20 rounded-full p-1 bg-gradient-to-tr from-slate-300 to-slate-100 shadow-lg"
+              >
+                <div
+                  class="w-full h-full rounded-full bg-cover bg-center border-4 border-white dark:border-[#1e2a24]"
+                  style="background-image: url('{{ second[5] if second[5] else 'https://ui-avatars.com/api/?name=' + second[1] + '&background=random&size=128' }}')"
+                ></div>
+              </div>
+              <div
+                class="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-slate-400 text-white size-7 flex items-center justify-center rounded-full font-black text-sm shadow-md ring-2 ring-white dark:ring-[#1e2a24]"
+              >
+                2
+              </div>
+            </div>
+            <div class="text-center mt-8">
+              <h3
+                class="text-lg font-bold text-slate-900 dark:text-white truncate max-w-[180px]"
+              >
+                {{ second[1] }}
+              </h3>
+              <span
+                class="text-xs font-bold text-slate-500 uppercase tracking-widest"
+                >Gümüş</span
+              >
+            </div>
+            <div
+              class="mt-4 bg-slate-100 dark:bg-slate-800 px-4 py-1.5 rounded-lg text-slate-700 dark:text-slate-300 font-black text-lg"
+            >
+              {{ second[3] }} P
+            </div>
+          </a>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if leaders|length > 3 %}
+  <div class="max-w-5xl mx-auto px-4 pb-24 -mt-4 relative z-20 w-full">
+    <div
+      class="bg-white dark:bg-[#1e2a24] rounded-3xl shadow-xl overflow-hidden border border-slate-100 dark:border-[#2a382e]"
+    >
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr
+              class="border-b border-slate-100 dark:border-[#2a382e] bg-slate-50 dark:bg-[#23302a]"
+            >
+              <th
+                class="py-4 pl-8 pr-4 text-xs font-bold text-slate-400 uppercase tracking-wider w-20 text-center"
+              >
+                Sıra
+              </th>
+              <th
+                class="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider"
+              >
+                Maceracı
+              </th>
+              <th
+                class="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center"
+              >
+                Seviye
+              </th>
+              <th
+                class="py-4 pl-4 pr-8 text-xs font-bold text-slate-400 uppercase tracking-wider text-right"
+              >
+                Toplam Puan
+              </th>
+              <th
+                class="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center"
+              >
+                İşlem
+              </th>
+            </tr>
+          </thead>
+          <tbody class="text-sm">
+            {% for leader in leaders[3:] %} {% set real_rank = loop.index + 3 %}
+            {% set is_me = (my_username and leader[1] == my_username) %}
+
+            <tr
+              class="leader-row {{ 'hidden' if real_rank > 10 else '' }} group transition-colors border-b border-slate-50 dark:border-[#2a382e]/50 last:border-0 
+                            {% if is_me %} bg-green-50 dark:bg-green-900/20 border-l-4 border-l-primary {% else %} hover:bg-slate-50 dark:hover:bg-[#23302a] {% endif %}"
+            >
+              <td class="py-4 pl-8 pr-4 text-center">
+                <span class="font-bold text-slate-500 dark:text-slate-400"
+                  >{{ real_rank }}</span
+                >
+              </td>
+
+              <td class="py-4 px-4">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="size-9 rounded-full bg-cover bg-center shrink-0 ring-1 ring-slate-200 dark:ring-slate-700"
+                    style="background-image: url('{{ leader[5] if leader[5] else 'https://ui-avatars.com/api/?name=' + leader[1] + '&background=random' }}')"
+                  ></div>
+                  <div>
+                    <p
+                      class="font-bold text-slate-900 dark:text-white {{ 'text-primary' if is_me }}"
+                    >
+                      {{ leader[1] }} {% if is_me %} (Sen) {% endif %}
+                    </p>
+                  </div>
+                </div>
+              </td>
+
+              <td class="py-4 px-4 text-center">
+                {% if leader[3] >= 2000 %}
+                <span
+                  class="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-bold"
+                  >Efsane</span
+                >
+                {% elif leader[3] >= 1000 %}
+                <span
+                  class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold"
+                  >Usta Kâşif</span
+                >
+                {% elif leader[3] >= 300 %}
+                <span
+                  class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold"
+                  >Gezgin</span
+                >
+                {% elif leader[3] >= 100 %}
+                <span
+                  class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-bold"
+                  >Tecrübeli</span
+                >
+                {% else %}
+                <span
+                  class="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs font-bold"
+                  >Yeni Başlayan</span
+                >
+                {% endif %}
+              </td>
+
+              <td class="py-4 pl-4 pr-8 text-right">
+                <span
+                  class="font-black text-slate-700 dark:text-slate-200 text-base"
+                >
+                  {{ leader[3] }}
+                </span>
+              </td>
+
+              <td class="py-4 px-4 text-center">
+                <a
+                  href="/profile/{{ leader[4] }}"
+                  class="size-8 inline-flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-primary hover:bg-primary/10 transition-colors"
+                >
+                  <span class="material-symbols-outlined text-[18px]"
+                    >visibility</span
+                  >
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if leaders|length > 10 %}
+      <div
+        id="loadMoreContainer"
+        class="p-4 border-t border-slate-100 dark:border-[#2a382e] flex justify-center bg-slate-50 dark:bg-[#1e2a24]/50"
+      >
+        <button
+          onclick="showMoreLeaders()"
+          class="flex items-center gap-2 text-sm font-bold text-primary hover:text-primary-hover transition-colors px-6 py-2 rounded-full hover:bg-primary/10"
+        >
+          Daha Fazla Göster
+          <span class="material-symbols-outlined text-[18px]">expand_more</span>
+        </button>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %} {% if ns.found %}
+  <div
+    class="fixed bottom-4 left-0 right-0 z-50 px-4 md:px-8 max-w-5xl mx-auto w-full"
+  >
+    <div
+      class="bg-primary text-white rounded-2xl shadow-2xl p-4 flex items-center justify-between backdrop-blur-sm bg-primary/95 border border-primary-dark/20 ring-4 ring-white/20"
+    >
+      <div class="flex items-center gap-4">
+        <div
+          class="flex flex-col items-center justify-center w-12 border-r border-white/20 pr-4"
+        >
+          <span class="text-xs font-medium opacity-80 uppercase">Sıra</span>
+          <span class="text-xl font-black">#{{ ns.rank }}</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <div
+            class="size-10 rounded-full bg-cover bg-center border-2 border-white"
+            style="background-image: url('https://ui-avatars.com/api/?name={{ my_username }}&background=random')"
+          ></div>
+          <div>
+            <p class="font-bold leading-tight">Sen</p>
+            <p class="text-xs opacity-90">
+              {% if ns.rank <= 3 %} Tebrikler Şampiyon! 🏆 {% elif ns.rank <= 10
+              %} İlk 10'dasın! 🔥 {% else %} Yürümeye devam et! 🚶‍♂️ {% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center gap-6">
+        <div class="text-right pl-4 border-l border-white/20">
+          <p class="text-xs opacity-80 uppercase font-bold">Puan</p>
+          <p class="font-black text-lg">{{ ns.points }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 </div>
+
+<script>
+  function showMoreLeaders() {
+    const hiddenRows = document.querySelectorAll(".leader-row.hidden");
+    hiddenRows.forEach((row) => {
+      row.classList.remove("hidden");
+    });
+    const btnContainer = document.getElementById("loadMoreContainer");
+    if (btnContainer) {
+      btnContainer.style.display = "none";
+    }
+  }
+</script>
 {% endblock %}

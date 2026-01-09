@@ -1,99 +1,216 @@
-{% extends 'base.html' %} {% block content %}
-<div class="row justify-content-center py-5">
-  <div class="col-md-6">
-    <div class="card border-0 shadow-lg">
-      <div class="card-body p-5">
-        <div class="text-center mb-4">
-          <h2 class="fw-bold text-success">Aramıza Katıl 🌿</h2>
-          <p class="text-muted">Profilini oluştur ve keşfetmeye başla.</p>
+{% extends "base.html" %} {% block content %}
+<div
+  class="min-h-[calc(100vh-5rem)] flex w-full flex-col lg:flex-row overflow-hidden"
+>
+  <div
+    class="hidden lg:flex w-full lg:w-5/12 relative flex-col justify-end p-10 lg:p-16 bg-cover bg-center overflow-hidden"
+    style="
+      background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop');
+    "
+  >
+    <div
+      class="absolute inset-0 z-10 bg-gradient-to-t from-[#1a3429] via-[#1a3429]/60 to-transparent"
+    ></div>
+
+    <div class="relative z-20 text-white max-w-lg">
+      <div
+        class="mb-6 inline-flex items-center justify-center w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm border border-white/30"
+      >
+        <span
+          class="material-symbols-outlined text-white"
+          style="font-size: 24px"
+          >landscape</span
+        >
+      </div>
+      <h2
+        class="text-3xl lg:text-4xl font-bold leading-tight mb-4 tracking-tight"
+      >
+        "The mountains are calling and I must go."
+      </h2>
+      <div class="flex items-center gap-3">
+        <div class="h-px w-8 bg-sage"></div>
+        <p class="text-sage font-medium text-lg">John Muir</p>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="flex-1 flex flex-col justify-center items-center p-6 md:p-12 bg-background-light dark:bg-background-dark relative overflow-y-auto"
+  >
+    <div class="w-full max-w-[560px] flex flex-col gap-6 animate-fade-in-up">
+      <div class="text-left">
+        <div
+          class="flex items-center gap-2 mb-4 lg:hidden text-primary dark:text-white"
+        >
+          <span class="material-symbols-outlined" style="font-size: 28px"
+            >landscape</span
+          >
+          <span class="font-bold text-xl tracking-tight">Walk Together</span>
         </div>
 
-        <form method="POST" action="{{ url_for('auth.register') }}">
-          <div class="row mb-3">
-            <div class="col-md-6">
-              <label class="form-label fw-bold">Kullanıcı Adı</label>
+        <h1
+          class="text-3xl md:text-4xl font-bold tracking-tight text-[#131614] dark:text-white mb-2"
+        >
+          Maceraya Katıl
+        </h1>
+        <p class="text-gray-500 dark:text-gray-400 text-base font-normal">
+          Walk Together ile yolculuğuna bugün başla.
+        </p>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %}
+      <div class="flex flex-col gap-2">
+        {% for category, message in messages %}
+        <div
+          class="p-4 rounded-xl text-sm font-medium border flex items-center gap-2 {% if category == 'success' %} bg-green-50 text-green-800 border-green-200 {% elif category == 'error' or category == 'danger' %} bg-red-50 text-red-800 border-red-200 {% else %} bg-blue-50 text-blue-800 border-blue-200 {% endif %}"
+        >
+          <span class="material-symbols-outlined text-lg">info</span>
+          {{ message }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %} {% endwith %}
+
+      <form
+        action="{{ url_for('auth.register') }}"
+        method="POST"
+        class="flex flex-col gap-5"
+      >
+        <div class="flex flex-col sm:flex-row gap-4">
+          <label class="flex flex-col flex-1">
+            <span
+              class="text-[#131614] dark:text-gray-200 text-sm font-semibold mb-2"
+              >Kullanıcı Adı</span
+            >
+            <div class="relative">
+              <span
+                class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-[20px]"
+                >person</span
+              >
               <input
-                type="text"
-                class="form-control bg-light"
                 name="username"
                 required
+                class="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-[#131614] dark:text-white h-12 pl-11 pr-4 focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-gray-400 transition-all duration-200"
+                placeholder="Kullanıcı adın"
+                type="text"
               />
             </div>
-            <div class="col-md-6">
-              <label class="form-label fw-bold">Yaş</label>
-              <input
-                type="number"
-                class="form-control bg-light"
-                name="age"
-                placeholder="Örn: 24"
-              />
-            </div>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label fw-bold">E-Posta</label>
+          </label>
+          <label class="flex flex-col w-full sm:w-28">
+            <span
+              class="text-[#131614] dark:text-gray-200 text-sm font-semibold mb-2"
+              >Yaş</span
+            >
             <input
-              type="email"
-              class="form-control bg-light"
+              name="age"
+              required
+              class="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-[#131614] dark:text-white h-12 px-4 focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-gray-400 transition-all duration-200"
+              placeholder="25"
+              type="number"
+            />
+          </label>
+        </div>
+
+        <label class="flex flex-col w-full">
+          <span
+            class="text-[#131614] dark:text-gray-200 text-sm font-semibold mb-2"
+            >E-Posta Adresi</span
+          >
+          <div class="relative">
+            <span
+              class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-[20px]"
+              >mail</span
+            >
+            <input
               name="email"
               required
+              class="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-[#131614] dark:text-white h-12 pl-11 pr-4 focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-gray-400 transition-all duration-200"
+              placeholder="ornek@email.com"
+              type="email"
             />
           </div>
+        </label>
 
-          <div class="mb-3">
-            <label class="form-label fw-bold">Şifre</label>
+        <label class="flex flex-col w-full">
+          <span
+            class="text-[#131614] dark:text-gray-200 text-sm font-semibold mb-2"
+            >Şifre</span
+          >
+          <div class="relative">
+            <span
+              class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-[20px]"
+              >lock</span
+            >
             <input
-              type="password"
-              class="form-control bg-light"
               name="password"
               required
+              class="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-[#131614] dark:text-white h-12 pl-11 pr-12 focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-gray-400 transition-all duration-200"
+              placeholder="••••••••"
+              type="password"
             />
           </div>
+        </label>
 
-          <div class="mb-3">
-            <label class="form-label fw-bold">Kendinden Bahset (Bio)</label>
-            <textarea
-              class="form-control bg-light"
-              name="bio"
-              rows="3"
-              placeholder="Doğa yürüyüşlerini severim..."
-            ></textarea>
-          </div>
+        <label class="flex flex-col w-full">
+          <span
+            class="text-[#131614] dark:text-gray-200 text-sm font-semibold mb-2"
+            >Biyografi
+            <span class="font-normal text-gray-400 text-xs ml-1"
+              >(İsteğe Bağlı)</span
+            ></span
+          >
+          <textarea
+            name="bio"
+            class="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-[#131614] dark:text-white p-4 min-h-[100px] focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-gray-400 resize-y transition-all duration-200"
+            placeholder="Yürüyüş deneyimlerinden bahset..."
+          ></textarea>
+        </label>
 
-          <div class="mb-4">
-            <label class="form-label fw-bold d-block">İlgi Alanların</label>
-            <div class="d-flex flex-wrap gap-3">
-              {% for hobby in hobbies %}
-              <div class="form-check">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  name="hobbies"
-                  value="{{ hobby[0] }}"
-                  id="h_{{ hobby[0] }}"
-                />
-                <label class="form-check-label" for="h_{{ hobby[0] }}">
-                  {{ hobby[1] }}
-                </label>
+        <div class="flex flex-col w-full">
+          <span
+            class="text-[#131614] dark:text-gray-200 text-sm font-semibold mb-3"
+            >İlgi Alanları</span
+          >
+          <div class="flex flex-wrap gap-2">
+            {% for hobby in hobbies %}
+            <label class="cursor-pointer group">
+              <input
+                name="hobbies"
+                value="{{ hobby[0] }}"
+                class="peer sr-only"
+                type="checkbox"
+              />
+              <div
+                class="flex items-center gap-2 rounded-full border border-gray-200 dark:border-gray-700 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 transition-all duration-200 bg-white dark:bg-gray-800 hover:border-primary/50 peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary peer-checked:shadow-md"
+              >
+                <span class="material-symbols-outlined text-[18px]">park</span>
+                {{ hobby[1] }}
               </div>
-              {% endfor %}
-            </div>
+            </label>
+            {% endfor %}
           </div>
-
-          <button
-            type="submit"
-            class="btn btn-success w-100 py-3 rounded-pill fw-bold shadow-sm"
-          >
-            Kaydı Tamamla
-          </button>
-        </form>
-
-        <div class="text-center mt-3">
-          <a href="{{ url_for('auth.login') }}" class="text-decoration-none"
-            >Zaten hesabın var mı? Giriş Yap</a
-          >
         </div>
-      </div>
+
+        <button
+          type="submit"
+          class="mt-4 w-full rounded-xl bg-primary text-white font-bold h-12 shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:bg-[#25573b] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2"
+        >
+          Kaydı Tamamla
+          <span class="material-symbols-outlined text-[20px]"
+            >arrow_forward</span
+          >
+        </button>
+
+        <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
+          Zaten hesabın var mı?
+          <a
+            class="text-primary font-semibold hover:underline decoration-2 underline-offset-4"
+            href="{{ url_for('auth.login') }}"
+            >Giriş Yap</a
+          >
+        </p>
+      </form>
     </div>
   </div>
 </div>

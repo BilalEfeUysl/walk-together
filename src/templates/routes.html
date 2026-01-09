@@ -1,4 +1,4 @@
-{% extends 'base.html' %} {% block content %}
+{% extends "base.html" %} {% block content %}
 <link
   rel="stylesheet"
   href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -9,140 +9,320 @@
 />
 
 <style>
-  #map {
-    height: 600px;
-    width: 100%;
-    border-radius: 10px;
-    border: 2px solid #eee;
-  }
-
-  .route-card {
-    cursor: pointer;
-    transition: all 0.2s;
-    border-left: 5px solid transparent;
-  }
-  .route-card:hover {
-    transform: translateX(5px);
-    background-color: #f8f9fa;
-    border-left: 5px solid var(--primary-color);
-  }
-
+  /* Routing panelini gizle */
   .leaflet-routing-container {
     display: none !important;
   }
+
+  /* İnce Scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 20px;
+  }
+
+  /* --- MARKER TASARIMI (Diğer sayfalarla aynı) --- */
+  .custom-div-icon {
+    background: transparent;
+    border: none;
+  }
+  .marker-pin {
+    width: 36px;
+    height: 36px;
+    border-radius: 50% 50% 50% 0;
+    background: #0ea5e9; /* Sky Blue */
+    position: absolute;
+    transform: rotate(-45deg);
+    left: 50%;
+    top: 50%;
+    margin: -18px 0 0 -18px;
+    box-shadow: -2px 2px 5px rgba(0, 0, 0, 0.4);
+  }
+  .marker-pin::after {
+    display: none;
+  }
+  .marker-pin-inner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(45deg);
+    z-index: 10;
+    font-weight: 800;
+    font-size: 14px;
+    color: #ffffff;
+    width: 100%;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+  }
+  .marker-start .marker-pin {
+    background: #10b981;
+  }
+  .marker-end .marker-pin {
+    background: #ef4444;
+  }
 </style>
 
-<div class="row">
-  <div class="col-md-4" style="height: 600px; overflow-y: auto">
-    <h3 class="mb-3 fw-bold">
-      <i class="fas fa-map-signs text-success"></i> Rotalar
-    </h3>
-
-    <form
-      action="/routes"
-      method="GET"
-      class="mb-3 sticky-top bg-white pt-2 pb-2"
-      style="z-index: 10"
+<div
+  class="flex h-[calc(100vh-5rem)] overflow-hidden bg-white dark:bg-background-dark font-display"
+>
+  <aside
+    class="w-full lg:w-1/2 shrink-0 flex flex-col bg-[#F9FAF8] dark:bg-[#151d19] border-r border-[#e8ebe9] dark:border-[#2a362f] h-full shadow-lg z-10 relative"
+  >
+    <div
+      class="p-6 pb-2 space-y-4 bg-[#F9FAF8] dark:bg-[#151d19] shrink-0 z-20 shadow-sm border-b border-gray-100 dark:border-gray-800"
     >
-      <div class="input-group shadow-sm">
-        <span class="input-group-text bg-white border-end-0"
-          ><i class="fas fa-search text-muted"></i
-        ></span>
-        <input
-          type="text"
-          name="q"
-          class="form-control border-start-0"
-          placeholder="Rota adı ara..."
-          value="{{ search_query }}"
-        />
-      </div>
-    </form>
-
-    <form
-      action="/routes"
-      method="GET"
-      class="mb-4 bg-light p-3 rounded border"
-    >
-      <h6 class="fw-bold text-dark mb-2">
-        <i class="fas fa-filter text-primary"></i> Mesafe Filtrele
-      </h6>
-      <div class="input-group input-group-sm mb-2">
-        <input
-          type="number"
-          name="min_dist"
-          class="form-control"
-          placeholder="Min KM"
-          required
-          step="0.1"
-        />
-        <span class="input-group-text">-</span>
-        <input
-          type="number"
-          name="max_dist"
-          class="form-control"
-          placeholder="Max KM"
-          required
-          step="0.1"
-        />
-      </div>
-      <button type="submit" class="btn btn-sm btn-primary w-100">Uygula</button>
-      {% if request.args.get('min_dist') %}
-      <a href="/routes" class="btn btn-sm btn-outline-secondary w-100 mt-2"
-        >Temizle</a
-      >
-      {% endif %}
-    </form>
-
-    <p class="text-muted small mb-3">Haritada görmek için karta tıklayın.</p>
-
-    <div class="list-group">
-      {% for route in routes %}
-      <div
-        class="list-group-item list-group-item-action route-card p-3 mb-2 shadow-sm border-0 rounded"
-        onclick="drawRoadRoute('{{ route[7] }}')"
-      >
-        <div class="d-flex w-100 justify-content-between align-items-center">
-          <h5 class="mb-1 fw-bold text-dark text-truncate">{{ route[0] }}</h5>
-          <span class="badge bg-light text-dark border">{{ route[2] }} km</span>
+      <div class="flex justify-between items-start gap-2">
+        <div>
+          <h1 class="text-2xl font-bold text-[#242728] dark:text-white mb-1">
+            Rotaları Keşfet
+          </h1>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Doğadaki bir sonraki maceranı bul 🏔️
+          </p>
         </div>
 
-        <div class="mb-2">
-          <span
-            class="badge {% if route[1] == 'Easy' %}bg-success {% elif route[1] == 'Medium' %}bg-warning text-dark {% else %}bg-danger{% endif %}"
+        <div class="flex items-center gap-2">
+          <div
+            class="hidden sm:block text-xs font-bold px-2 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-lg text-gray-500 border border-gray-200 dark:border-gray-700"
           >
-            {{ route[1] }}
-          </span>
-          <small class="text-muted ms-2"
-            ><i class="fas fa-user"></i> {{ route[3] }}</small
-          >
-        </div>
-
-        <div
-          class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top"
-        >
-          <small class="text-warning fw-bold">
-            {% if route[5] > 0 %} ⭐ {{ route[5] }} ({{ route[6] }} Yorum) {%
-            else %} Yeni Rota {% endif %}
-          </small>
+            {{ routes|length }} Rota
+          </div>
           <a
-            href="/route/{{ route[7] }}"
-            class="btn btn-sm btn-outline-primary rounded-pill px-3"
+            href="{{ url_for('main.create') }}?type=route"
+            class="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold transition-all shadow-sm hover:shadow-md active:scale-95 text-xs whitespace-nowrap"
           >
-            Detay & Yorum <i class="fas fa-arrow-right ms-1"></i>
+            <span class="material-symbols-outlined text-[18px]"
+              >add_circle</span
+            >
+            <span class="hidden sm:inline">Rota Oluştur</span>
           </a>
         </div>
       </div>
+
+      <form id="filterForm" action="/routes" method="GET" class="space-y-3">
+        <div class="relative group">
+          <div
+            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+          >
+            <span class="material-symbols-outlined text-gray-400">search</span>
+          </div>
+          <input
+            name="q"
+            value="{{ request.args.get('q', '') }}"
+            class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 dark:border-[#2a362f] rounded-xl leading-5 bg-white dark:bg-[#1e2621] text-[#242728] dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm shadow-sm"
+            placeholder="Rota adı ara..."
+            type="text"
+          />
+        </div>
+
+        <div class="flex gap-2 text-sm w-full">
+          <input
+            id="min_dist"
+            name="min_dist"
+            value="{{ request.args.get('min_dist', '') }}"
+            class="flex-1 px-3 py-2 border border-gray-200 dark:border-[#2a362f] rounded-lg bg-white dark:bg-[#1e2621] text-gray-700 dark:text-white focus:ring-primary/20 focus:border-primary"
+            placeholder="Min KM"
+            type="number"
+            step="0.1"
+          />
+          <input
+            id="max_dist"
+            name="max_dist"
+            value="{{ request.args.get('max_dist', '') }}"
+            class="flex-1 px-3 py-2 border border-gray-200 dark:border-[#2a362f] rounded-lg bg-white dark:bg-[#1e2621] text-gray-700 dark:text-white focus:ring-primary/20 focus:border-primary"
+            placeholder="Max KM"
+            type="number"
+            step="0.1"
+          />
+          <button
+            type="submit"
+            class="px-5 py-2 bg-slate-800 dark:bg-slate-700 text-white rounded-lg text-sm font-bold hover:bg-slate-900 transition-colors shadow-sm active:scale-95"
+          >
+            Ara
+          </button>
+        </div>
+
+        <div
+          class="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar"
+        >
+          {% if request.args.get('min_dist') or request.args.get('difficulty')
+          or request.args.get('q') %}
+          <a
+            href="/routes"
+            class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 transition-all whitespace-nowrap text-xs font-bold shrink-0"
+          >
+            <span class="material-symbols-outlined text-[14px]">close</span>
+            Temizle
+          </a>
+          {% endif %}
+
+          <button
+            type="button"
+            onclick="applySmartFilter('Easy', 0, 5)"
+            class="flex items-center gap-1 px-3 py-1.5 rounded-lg border transition-all whitespace-nowrap text-xs font-bold shrink-0 {{ 'bg-green-100 text-green-700 border-green-200' if request.args.get('difficulty') == 'Easy' else 'bg-white dark:bg-[#1e2621] text-gray-600 dark:text-gray-300 border-gray-200 dark:border-[#2a362f] hover:border-green-300' }}"
+          >
+            <span
+              class="material-symbols-outlined text-[14px] {{ 'text-green-700' if request.args.get('difficulty') == 'Easy' else 'text-gray-400' }}"
+              >eco</span
+            >
+            Kolay (0-5km)
+          </button>
+
+          <button
+            type="button"
+            onclick="applySmartFilter('Medium', 5, 15)"
+            class="flex items-center gap-1 px-3 py-1.5 rounded-lg border transition-all whitespace-nowrap text-xs font-bold shrink-0 {{ 'bg-yellow-100 text-yellow-700 border-yellow-200' if request.args.get('difficulty') == 'Medium' else 'bg-white dark:bg-[#1e2621] text-gray-600 dark:text-gray-300 border-gray-200 dark:border-[#2a362f] hover:border-yellow-300' }}"
+          >
+            <span
+              class="material-symbols-outlined text-[14px] {{ 'text-yellow-700' if request.args.get('difficulty') == 'Medium' else 'text-gray-400' }}"
+              >hiking</span
+            >
+            Orta (5-15km)
+          </button>
+
+          <button
+            type="button"
+            onclick="applySmartFilter('Hard', 15, 50)"
+            class="flex items-center gap-1 px-3 py-1.5 rounded-lg border transition-all whitespace-nowrap text-xs font-bold shrink-0 {{ 'bg-red-100 text-red-700 border-red-200' if request.args.get('difficulty') == 'Hard' else 'bg-white dark:bg-[#1e2621] text-gray-600 dark:text-gray-300 border-gray-200 dark:border-[#2a362f] hover:border-red-300' }}"
+          >
+            <span
+              class="material-symbols-outlined text-[14px] {{ 'text-red-700' if request.args.get('difficulty') == 'Hard' else 'text-gray-400' }}"
+              >landscape</span
+            >
+            Zor (15km+)
+          </button>
+
+          <input
+            type="hidden"
+            id="difficultyInput"
+            name="difficulty"
+            value="{{ request.args.get('difficulty', '') }}"
+          />
+        </div>
+      </form>
+    </div>
+
+    <div
+      class="flex-1 overflow-y-auto custom-scrollbar px-6 pb-6 pt-4 space-y-4 bg-[#F9FAF8] dark:bg-[#151d19]"
+    >
+      {% for route in routes %}
+      <div
+        onclick="drawRoadRoute('{{ route[7] }}')"
+        class="group relative flex flex-col sm:flex-row bg-white dark:bg-[#1e2621] rounded-2xl p-3 border border-gray-100 dark:border-[#2a362f] hover:border-primary/50 hover:shadow-md transition-all cursor-pointer"
+      >
+        <div
+          class="w-full sm:w-28 h-32 sm:h-28 shrink-0 rounded-xl overflow-hidden relative mb-3 sm:mb-0 shadow-sm"
+        >
+          <img
+            alt="{{ route[0] }}"
+            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            src="https://loremflickr.com/300/300/nature,road?lock={{ route[7] }}"
+          />
+        </div>
+
+        <div class="flex-1 sm:ml-4 flex flex-col justify-between py-1">
+          <div>
+            <div class="flex justify-between items-start">
+              <h4
+                class="font-bold text-[#242728] dark:text-white group-hover:text-primary transition-colors text-lg leading-tight line-clamp-1"
+              >
+                {{ route[0] }}
+              </h4>
+              <div
+                class="flex items-center gap-1 bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded-md shrink-0"
+              >
+                <span
+                  class="text-xs font-bold text-amber-700 dark:text-amber-400"
+                >
+                  {% if route[5] > 0 %} {{ "{:.1f}".format(route[5]) }} {% else
+                  %} Yeni {% endif %}
+                </span>
+                {% if route[5] > 0 %}
+                <span
+                  class="material-symbols-outlined text-[14px] text-amber-500 fill-current"
+                  >star</span
+                >
+                {% endif %}
+              </div>
+            </div>
+            <p
+              class="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1"
+            >
+              <span class="material-symbols-outlined text-[14px]">person</span>
+              {{ route[3] }}
+            </p>
+          </div>
+
+          <div class="flex items-center justify-between mt-3">
+            <div class="flex items-center gap-2">
+              <span
+                class="inline-flex items-center px-2 py-1 rounded-md text-xs font-bold {% if route[1] == 'Easy' %} bg-green-100 text-green-700 {% elif route[1] == 'Medium' or route[1] == 'Moderate' %} bg-yellow-100 text-yellow-700 {% else %} bg-red-100 text-red-700 {% endif %}"
+              >
+                {{ 'Kolay' if route[1] == 'Easy' else ('Orta' if route[1] ==
+                'Medium' or route[1] == 'Moderate' else 'Zor') }}
+              </span>
+              <span
+                class="text-xs font-bold text-gray-600 dark:text-gray-300 flex items-center gap-1"
+              >
+                <span
+                  class="material-symbols-outlined text-[16px] text-gray-400"
+                  >straighten</span
+                >
+                {{ route[2] }} km
+              </span>
+            </div>
+
+            <a
+              href="/route/{{ route[7] }}"
+              onclick="event.stopPropagation();"
+              class="px-4 py-1.5 bg-primary text-white hover:bg-primary-hover rounded-full text-xs font-bold transition-all shadow-sm hover:shadow z-10 relative flex items-center gap-1"
+            >
+              Detaylar
+              <span class="material-symbols-outlined text-[14px]"
+                >arrow_forward</span
+              >
+            </a>
+          </div>
+        </div>
+      </div>
       {% else %}
-      <div class="alert alert-warning">
-        Aradığınız kriterde rota bulunamadı.
+      <div
+        class="flex flex-col items-center justify-center py-12 text-center h-full"
+      >
+        <div class="bg-gray-100 dark:bg-gray-800 p-4 rounded-full mb-3">
+          <span class="material-symbols-outlined text-4xl text-gray-400"
+            >map_search</span
+          >
+        </div>
+        <h3 class="font-bold text-gray-800 dark:text-white">Rota Bulunamadı</h3>
+        <p class="text-sm text-gray-500 mt-1 max-w-[200px]">
+          Aradığınız kriterlere uygun bir rota yok. Filtreleri temizlemeyi
+          deneyin.
+        </p>
+        {% if request.args.get('min_dist') or request.args.get('difficulty') or
+        request.args.get('q') %}
+        <a
+          href="/routes"
+          class="mt-4 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm font-bold transition-colors"
+          >Filtreleri Temizle</a
+        >
+        {% endif %}
       </div>
       {% endfor %}
     </div>
-  </div>
+  </aside>
 
-  <div class="col-md-8">
-    <div id="map" class="shadow-sm"></div>
-  </div>
+  <main class="hidden lg:block lg:w-1/2 relative bg-gray-100">
+    <div id="map" class="absolute inset-0 w-full h-full z-0"></div>
+  </main>
 </div>
 
 <script id="routes-data" type="application/json">
@@ -153,24 +333,51 @@
 <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
 <script>
-  var map = L.map("map").setView([41.0082, 28.9784], 11);
+  // 1. Haritayı Başlat
+  var map = L.map("map").setView([41.0082, 28.9784], 10);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; OpenStreetMap contributors",
   }).addTo(map);
 
-  // Veriyi script tag'inin içinden okuyoruz
+  // 2. Veriyi Oku
   var rawData = document.getElementById("routes-data").textContent;
   var routesData = JSON.parse(rawData);
 
   var currentRoutingControl = null;
   var currentMarkers = [];
 
+  // --- İKON OLUŞTURUCU (Mavi Stil) ---
+  function createIcon(type, number) {
+    let bgClass = "marker-pin";
+    let innerContent = number;
+    let customClass = "";
+
+    if (type === "start") {
+      customClass = "marker-start";
+      innerContent =
+        '<span class="material-symbols-outlined" style="font-size:18px; color: white;">flag</span>';
+    } else if (type === "end") {
+      customClass = "marker-end";
+      innerContent =
+        '<span class="material-symbols-outlined" style="font-size:18px; color: white;">sports_score</span>';
+    }
+
+    return L.divIcon({
+      className: "custom-div-icon " + customClass,
+      html: `<div class='marker-pin'></div><div class='marker-pin-inner'>${innerContent}</div>`,
+      iconSize: [36, 36],
+      iconAnchor: [18, 36],
+      popupAnchor: [0, -30],
+    });
+  }
+
+  // 3. Rota Çizme
   function drawRoadRoute(routeId) {
     var coords = routesData[routeId];
 
     if (!coords || coords.length === 0) {
-      alert("Bu rotanın durak bilgisi bulunamadı!");
+      console.log("Bu rotanın durak bilgisi bulunamadı! ID: " + routeId);
       return;
     }
 
@@ -196,23 +403,49 @@
         fitSelectedRoutes: true,
         show: false,
         lineOptions: {
-          styles: [{ color: "#0d6efd", opacity: 0.8, weight: 6 }],
+          styles: [{ color: "#0ea5e9", opacity: 0.8, weight: 6 }], // Mavi Çizgi
         },
         createMarker: function (i, wp, nWps) {
+          var type = "mid";
           var label = "";
-          if (i === 0) label = "Başlangıç 🏁";
-          else if (i === nWps - 1) label = "Bitiş 🏁";
-          else label = "Durak " + (i + 1);
 
-          var marker = L.marker(wp.latLng).bindPopup(label);
+          if (i === 0) {
+            type = "start";
+            label = "Başlangıç 🏁";
+          } else if (i === nWps - 1) {
+            type = "end";
+            label = "Bitiş 🏁";
+          } else {
+            label = "Durak " + i;
+          }
+
+          var marker = L.marker(wp.latLng, {
+            icon: createIcon(type, i),
+          }).bindPopup(label);
+
           currentMarkers.push(marker);
           return marker;
         },
       }).addTo(map);
     } catch (e) {
       console.error("Rota çizim hatası:", e);
-      alert("Rota çizilirken bir hata oluştu.");
     }
+  }
+
+  // 4. Akıllı Filtreleme
+  function applySmartFilter(difficulty, minKm, maxKm) {
+    document.getElementById("min_dist").value = minKm;
+    document.getElementById("max_dist").value = maxKm;
+    let diffInput = document.getElementById("difficultyInput");
+    if (!diffInput) {
+      diffInput = document.createElement("input");
+      diffInput.type = "hidden";
+      diffInput.name = "difficulty";
+      diffInput.id = "difficultyInput";
+      document.getElementById("filterForm").appendChild(diffInput);
+    }
+    diffInput.value = difficulty;
+    document.getElementById("filterForm").submit();
   }
 </script>
 {% endblock %}

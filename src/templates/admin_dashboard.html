@@ -1,105 +1,456 @@
-{% extends 'base.html' %} {% block content %}
-<div class="container-fluid">
-  <h2 class="mb-4 fw-bold">
-    <i class="fas fa-cogs text-dark"></i> Yönetim Paneli
-  </h2>
+{% extends 'base.html' %} {% block title %}Yönetim Paneli - Walk Together{%
+endblock %} {% block content %}
+<link
+  href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap"
+  rel="stylesheet"
+/>
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+/>
 
-  <div class="row mb-4">
-    <div class="col-md-4">
-      <div class="card bg-primary text-white shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title">Toplam Kullanıcı</h5>
-          <h2 class="display-6 fw-bold">{{ stats.users }}</h2>
-        </div>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          primary: "#2d8652",
+          "primary-hover": "#246c42",
+          secondary: "#6a8173",
+          "accent-light": "#e8f5e9",
+          "background-light": "#ffffff",
+          "background-subtle": "#F7F8FA",
+          "background-dark": "#242628",
+          "surface-dark": "#2f3336",
+        },
+        fontFamily: {
+          display: ["Manrope", "sans-serif"],
+          body: ["Manrope", "sans-serif"],
+        },
+        boxShadow: {
+          soft: "0 4px 12px rgba(0, 0, 0, 0.05)",
+        },
+      },
+    },
+  };
+</script>
+
+<div
+  class="bg-background-subtle text-[#121614] font-display antialiased overflow-hidden h-[calc(100vh-80px)] flex"
+>
+  <aside
+    class="w-64 bg-white h-full flex flex-col border-r border-[#dde3e0] shrink-0 z-20 hidden md:flex"
+  >
+    <div class="p-6 flex items-center gap-3">
+      <div
+        class="bg-primary/10 rounded-xl p-2 flex items-center justify-center text-primary"
+      >
+        <span class="material-symbols-outlined text-3xl"
+          >admin_panel_settings</span
+        >
+      </div>
+      <div>
+        <h1 class="text-[#121614] text-lg font-bold leading-tight">Yönetici</h1>
+        <p class="text-secondary text-xs font-medium">Kontrol Paneli</p>
       </div>
     </div>
-    <div class="col-md-4">
-      <div class="card bg-success text-white shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title">Toplam Rota</h5>
-          <h2 class="display-6 fw-bold">{{ stats.routes }}</h2>
+
+    <nav class="flex-1 px-4 py-2 flex flex-col gap-2 overflow-y-auto">
+      <button
+        onclick="showSection('dashboard')"
+        id="btn-dashboard"
+        class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/10 text-primary transition-colors group w-full text-left"
+      >
+        <span class="material-symbols-outlined filled">dashboard</span>
+        <span class="text-sm font-bold">Genel Bakış</span>
+      </button>
+
+      <button
+        onclick="showSection('users')"
+        id="btn-users"
+        class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-secondary hover:bg-slate-50 hover:text-[#121614] transition-colors group w-full text-left"
+      >
+        <span class="material-symbols-outlined">group</span>
+        <span class="text-sm font-medium">Kullanıcılar</span>
+      </button>
+
+      <div
+        class="px-4 pt-4 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider"
+      >
+        İçerik
+      </div>
+
+      <button
+        onclick="showSection('events')"
+        id="btn-events"
+        class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-secondary hover:bg-slate-50 hover:text-[#121614] transition-colors group w-full text-left"
+      >
+        <span class="material-symbols-outlined">event</span>
+        <span class="text-sm font-medium">Etkinlikler</span>
+      </button>
+
+      <button
+        onclick="showSection('routes')"
+        id="btn-routes"
+        class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-secondary hover:bg-slate-50 hover:text-[#121614] transition-colors group w-full text-left"
+      >
+        <span class="material-symbols-outlined">map</span>
+        <span class="text-sm font-medium">Rotalar</span>
+      </button>
+
+      <button
+        onclick="showSection('clubs')"
+        id="btn-clubs"
+        class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-secondary hover:bg-slate-50 hover:text-[#121614] transition-colors group w-full text-left"
+      >
+        <span class="material-symbols-outlined">groups</span>
+        <span class="text-sm font-medium">Kulüpler</span>
+      </button>
+
+      <div
+        class="px-4 pt-4 pb-2 text-xs font-bold text-gray-400 uppercase tracking-wider"
+      >
+        Sistem
+      </div>
+
+      <button
+        onclick="showSection('settings')"
+        id="btn-settings"
+        class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-secondary hover:bg-slate-50 hover:text-[#121614] transition-colors group w-full text-left"
+      >
+        <span class="material-symbols-outlined">settings</span>
+        <span class="text-sm font-medium">Tanımlamalar</span>
+      </button>
+    </nav>
+  </aside>
+
+  <main
+    class="flex-1 flex flex-col h-full relative overflow-hidden bg-[#F7F8FA]"
+  >
+    <div class="flex-1 overflow-y-auto p-6 md:p-10 pb-20 scroll-smooth">
+      <div
+        id="section-dashboard"
+        class="content-section space-y-8 animate-fade-in"
+      >
+        <div>
+          <h2 class="text-3xl font-bold text-[#121614] mb-2">
+            Hoşgeldin, {{ session.get('username') }}! 👋
+          </h2>
+          <p class="text-secondary">Sistem genel durumu ve istatistikler.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div
+            onclick="showSection('users')"
+            class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm hover:shadow-lg transition-all cursor-pointer group relative overflow-hidden h-48 flex flex-col justify-between"
+          >
+            <div
+              class="absolute right-0 top-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity"
+            >
+              <span class="material-symbols-outlined text-9xl text-green-600"
+                >group</span
+              >
+            </div>
+            <div>
+              <p
+                class="text-slate-400 font-bold text-sm uppercase tracking-widest mb-1"
+              >
+                Toplam Kullanıcı Sayısı
+              </p>
+              <h3 class="text-5xl font-black text-slate-900">
+                {{ stats.users }}
+              </h3>
+            </div>
+            <div
+              class="flex items-center gap-2 text-green-600 font-bold text-sm"
+            >
+              <span class="bg-green-100 px-2 py-1 rounded-lg">Aktif</span>
+              Kullanıcı Sayısı
+            </div>
+          </div>
+
+          <div
+            onclick="showSection('routes')"
+            class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm hover:shadow-lg transition-all cursor-pointer group relative overflow-hidden h-48 flex flex-col justify-between"
+          >
+            <div
+              class="absolute right-0 top-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity"
+            >
+              <span class="material-symbols-outlined text-9xl text-blue-600"
+                >map</span
+              >
+            </div>
+            <div>
+              <p
+                class="text-slate-400 font-bold text-sm uppercase tracking-widest mb-1"
+              >
+                Rota Arşivi
+              </p>
+              <h3 class="text-5xl font-black text-slate-900">
+                {{ stats.routes }}
+              </h3>
+            </div>
+            <div
+              class="flex items-center gap-2 text-blue-600 font-bold text-sm"
+            >
+              <span class="bg-blue-100 px-2 py-1 rounded-lg">Keşfet</span>
+              Toplam Rota Sayısı
+            </div>
+          </div>
+
+          <div
+            onclick="showSection('events')"
+            class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm hover:shadow-lg transition-all cursor-pointer group relative overflow-hidden h-48 flex flex-col justify-between"
+          >
+            <div
+              class="absolute right-0 top-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity"
+            >
+              <span class="material-symbols-outlined text-9xl text-orange-600"
+                >event</span
+              >
+            </div>
+            <div>
+              <p
+                class="text-slate-400 font-bold text-sm uppercase tracking-widest mb-1"
+              >
+                Etkinlikler
+              </p>
+              <h3 class="text-5xl font-black text-slate-900">
+                {{ stats.events }}
+              </h3>
+            </div>
+            <div
+              class="flex items-center gap-2 text-orange-600 font-bold text-sm"
+            >
+              <span class="bg-orange-100 px-2 py-1 rounded-lg">Plan</span>
+              Toplam Etkinlik Sayısı
+            </div>
+          </div>
+
+          <div
+            onclick="showSection('clubs')"
+            class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm hover:shadow-lg transition-all cursor-pointer group relative overflow-hidden h-48 flex flex-col justify-between"
+          >
+            <div
+              class="absolute right-0 top-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity"
+            >
+              <span class="material-symbols-outlined text-9xl text-red-600"
+                >groups</span
+              >
+            </div>
+            <div>
+              <p
+                class="text-slate-400 font-bold text-sm uppercase tracking-widest mb-1"
+              >
+                Topluluklar
+              </p>
+              <h3 class="text-5xl font-black text-slate-900">
+                {{ stats.clubs }}
+              </h3>
+            </div>
+            <div class="flex items-center gap-2 text-red-600 font-bold text-sm">
+              <span class="bg-red-100 px-2 py-1 rounded-lg">Kulüp</span> Toplam
+              Kulüp Sayısı
+            </div>
+          </div>
+
+          <div
+            class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm hover:shadow-lg transition-all group relative overflow-hidden h-48 flex flex-col justify-between hover:-translate-y-1"
+          >
+            <div
+              class="absolute right-0 top-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity"
+            >
+              <span class="material-symbols-outlined text-9xl text-purple-600"
+                >military_tech</span
+              >
+            </div>
+            <div>
+              <p
+                class="text-slate-400 font-bold text-sm uppercase tracking-widest mb-1"
+              >
+                Toplam Kazanılan Puan
+              </p>
+              <h3 class="text-5xl font-black text-slate-900">
+                {{ stats.total_points }}
+              </h3>
+            </div>
+            <div
+              class="flex items-center gap-2 text-purple-600 font-bold text-sm"
+            >
+              <span class="bg-purple-100 px-2 py-1 rounded-lg">Skor</span> Genel
+              Toplam
+            </div>
+          </div>
+
+          <div
+            class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm hover:shadow-lg transition-all group relative overflow-hidden h-48 flex flex-col justify-between hover:-translate-y-1"
+          >
+            <div
+              class="absolute right-0 top-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity"
+            >
+              <span class="material-symbols-outlined text-9xl text-teal-600"
+                >check_circle</span
+              >
+            </div>
+            <div>
+              <p
+                class="text-slate-400 font-bold text-sm uppercase tracking-widest mb-1"
+              >
+                Toplam Katılım Sayısı
+              </p>
+              <h3 class="text-5xl font-black text-slate-900">
+                {{ stats.participations }}
+              </h3>
+            </div>
+            <div
+              class="flex items-center gap-2 text-teal-600 font-bold text-sm"
+            >
+              <span class="bg-teal-100 px-2 py-1 rounded-lg">Aktif</span>
+              Katılım Sayısı
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card bg-warning text-dark shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title">Toplam Etkinlik</h5>
-          <h2 class="display-6 fw-bold">{{ stats.events }}</h2>
+
+      <div
+        id="section-users"
+        class="content-section hidden space-y-6 animate-fade-in"
+      >
+        <div class="flex justify-between items-center">
+          <h2 class="text-2xl font-bold text-[#121614]">Kullanıcı Yönetimi</h2>
+          <span
+            class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-xs font-bold"
+            >{{ users|length }} Kayıt</span
+          >
+        </div>
+
+        <div
+          class="bg-white rounded-xl border border-[#dde3e0] shadow-soft overflow-hidden"
+        >
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead
+                class="bg-slate-50 border-b border-[#dde3e0] text-xs font-bold text-secondary uppercase"
+              >
+                <tr>
+                  <th class="px-6 py-4">Kullanıcı</th>
+                  <th class="px-6 py-4">E-Posta</th>
+                  <th class="px-6 py-4">Kayıt Tarihi</th>
+                  <th class="px-6 py-4 text-right">İşlem</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#dde3e0]">
+                {% for u in users %}
+                <tr class="hover:bg-slate-50 transition-colors group">
+                  <td class="px-6 py-4">
+                    <a
+                      href="{{ url_for('main.profile', user_id=u[0]) }}"
+                      class="font-bold text-[#121614] hover:text-primary transition-colors flex items-center gap-2"
+                      target="_blank"
+                    >
+                      {{ u[1] }}
+                    </a>
+                    {% if u[3] == 'admin' %}
+                    <span
+                      class="ml-2 bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase"
+                      >Admin</span
+                    >
+                    {% endif %}
+                  </td>
+                  <td class="px-6 py-4 text-sm text-secondary">
+                    {{ u[2] if u[2] else '-' }}
+                  </td>
+                  <td class="px-6 py-4 text-sm text-secondary">
+                    {{ u[4].strftime('%d.%m.%Y') }}
+                  </td>
+                  <td class="px-6 py-4 text-right">
+                    {% if u[3] != 'admin' %}
+                    <a
+                      href="{{ url_for('admin.delete_user', user_id=u[0]) }}"
+                      onclick="return confirm('Kullanıcıyı silmek istediğine emin misin?')"
+                      class="text-red-500 hover:text-red-700 font-bold text-sm bg-red-50 px-3 py-1 rounded hover:bg-red-100 transition-colors"
+                      >Sil</a
+                    >
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
 
-  <ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
-    <li class="nav-item">
-      <button
-        class="nav-link active fw-bold"
-        data-bs-toggle="tab"
-        data-bs-target="#users"
+      <div
+        id="section-events"
+        class="content-section hidden space-y-6 animate-fade-in"
       >
-        👥 Kullanıcılar
-      </button>
-    </li>
-    <li class="nav-item">
-      <button
-        class="nav-link fw-bold"
-        data-bs-toggle="tab"
-        data-bs-target="#content"
-      >
-        📝 İçerik Yönetimi
-      </button>
-    </li>
-    <li class="nav-item">
-      <button
-        class="nav-link fw-bold"
-        data-bs-toggle="tab"
-        data-bs-target="#definitions"
-      >
-        ⚙️ Tanımlamalar
-      </button>
-    </li>
-  </ul>
-
-  <div class="tab-content">
-    <div class="tab-pane fade show active" id="users">
-      <div class="card shadow-sm border-0">
-        <div class="card-body table-responsive">
-          <table class="table table-hover align-middle">
-            <thead class="table-light">
+        <h2 class="text-2xl font-bold text-[#121614]">Etkinlik Yönetimi</h2>
+        <div
+          class="bg-white rounded-xl border border-[#dde3e0] shadow-soft overflow-hidden"
+        >
+          <table class="w-full text-left">
+            <thead
+              class="bg-slate-50 border-b border-[#dde3e0] text-xs font-bold text-secondary uppercase"
+            >
               <tr>
-                <th>ID</th>
-                <th>Kullanıcı Adı</th>
-                <th>E-Posta</th>
-                <th>Rol</th>
-                <th>Kayıt Tarihi</th>
-                <th>İşlem</th>
+                <th class="px-6 py-4">Etkinlik Adı</th>
+                <th class="px-6 py-4">Tarih</th>
+                <th class="px-6 py-4">Durum</th>
+                <th class="px-6 py-4 text-right">İşlem</th>
               </tr>
             </thead>
-            <tbody>
-              {% for u in users %}
-              <tr>
-                <td>{{ u[0] }}</td>
-                <td class="fw-bold">{{ u[1] }}</td>
-                <td>{{ u[2] }}</td>
-                <td>
-                  {% if u[3] == 'admin' %}
-                  <span class="badge bg-danger">Yönetici</span>
+            <tbody class="divide-y divide-[#dde3e0]">
+              {% for e in events %}
+              <tr class="hover:bg-slate-50 transition-colors">
+                <td class="px-6 py-4">
+                  <a
+                    href="{{ url_for('main.event_detail', event_id=e[0]) }}"
+                    class="font-bold text-[#121614] hover:text-primary"
+                    target="_blank"
+                  >
+                    {{ e[1] }}
+                  </a>
+                </td>
+                <td class="px-6 py-4 text-sm text-secondary">
+                  {{ e[3].strftime('%d.%m.%Y') if e[3] else '-' }}
+                </td>
+                <td class="px-6 py-4">
+                  {% if e[2] == 'active' %}
+                  <span
+                    class="px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700"
+                    >Aktif</span
+                  >
+                  {% elif e[2] == 'completed' %}
+                  <span
+                    class="px-2 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700"
+                    >Tamamlandı</span
+                  >
+                  {% elif e[2] == 'cancelled' %}
+                  <span
+                    class="px-2 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700"
+                    >İptal</span
+                  >
+                  {% elif e[2] == 'upcoming' %}
+                  <span
+                    class="px-2 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700"
+                    >Yaklaşan</span
+                  >
                   {% else %}
-                  <span class="badge bg-secondary">Üye</span>
+                  <span
+                    class="px-2 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-700"
+                    >{{ e[2] }}</span
+                  >
                   {% endif %}
                 </td>
-                <td>{{ u[4].strftime('%d.%m.%Y') }}</td>
-                <td>
-                  {% if u[3] != 'admin' %}
+                <td class="px-6 py-4 text-right">
                   <a
-                    href="{{ url_for('admin.delete_user', user_id=u[0]) }}"
-                    class="btn btn-sm btn-outline-danger"
-                    onclick="return confirm('Bu kullanıcıyı ve tüm verilerini silmek istediğine emin misin?');"
+                    href="{{ url_for('admin.delete_content', type='event', id=e[0]) }}"
+                    onclick="return confirm('Sil?')"
+                    class="text-xs bg-red-50 text-red-600 px-3 py-1.5 rounded hover:bg-red-100 font-bold transition-colors"
+                    >Sil</a
                   >
-                    <i class="fas fa-trash-alt"></i> Sil
-                  </a>
-                  {% endif %}
                 </td>
               </tr>
               {% endfor %}
@@ -107,227 +458,574 @@
           </table>
         </div>
       </div>
-    </div>
 
-    <div class="tab-pane fade" id="content">
-      <div class="row">
-        <div class="col-md-6">
-          <div class="card shadow-sm border-0 mb-3">
-            <div class="card-header bg-white fw-bold">Son Rotalar</div>
-            <ul
-              class="list-group list-group-flush"
-              style="max-height: 400px; overflow-y: auto"
+      <div
+        id="section-routes"
+        class="content-section hidden space-y-6 animate-fade-in"
+      >
+        <h2 class="text-2xl font-bold text-[#121614]">Rota Yönetimi</h2>
+        <div
+          class="bg-white rounded-xl border border-[#dde3e0] shadow-soft overflow-hidden"
+        >
+          <table class="w-full text-left">
+            <thead
+              class="bg-slate-50 border-b border-[#dde3e0] text-xs font-bold text-secondary uppercase"
             >
+              <tr>
+                <th class="px-6 py-4">Rota Adı</th>
+                <th class="px-6 py-4">Mesafe</th>
+                <th class="px-6 py-4">Oluşturma Tarihi</th>
+                <th class="px-6 py-4 text-right">İşlem</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-[#dde3e0]">
               {% for r in routes %}
-              <li
-                class="list-group-item d-flex justify-content-between align-items-center"
-              >
-                <span class="text-truncate" style="max-width: 70%"
-                  >{{ r[1] }}</span
-                >
-                <a
-                  href="{{ url_for('admin.delete_content', type='route', id=r[0]) }}"
-                  class="btn btn-sm btn-danger py-0"
-                  onclick="return confirm('Sil?')"
-                  >Sil</a
-                >
-              </li>
-              {% endfor %}
-            </ul>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="card shadow-sm border-0">
-            <div class="card-header bg-white fw-bold">Son Etkinlikler</div>
-            <ul
-              class="list-group list-group-flush"
-              style="max-height: 400px; overflow-y: auto"
-            >
-              {% for e in events %}
-              <li
-                class="list-group-item d-flex justify-content-between align-items-center"
-              >
-                <div class="text-truncate" style="max-width: 70%">
-                  <span class="fw-bold d-block">{{ e[1] }}</span>
-                  <small class="text-muted" style="font-size: 0.75rem"
-                    >{{ e[2] }}</small
+              <tr class="hover:bg-slate-50 transition-colors">
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
+                      <span class="material-symbols-outlined">map</span>
+                    </div>
+                    <a
+                      href="{{ url_for('main.route_detail', route_id=r[0]) }}"
+                      class="font-bold text-[#121614] hover:text-primary"
+                      target="_blank"
+                    >
+                      {{ r[1] }}
+                    </a>
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-sm text-secondary">{{ r[2] }} km</td>
+                <td class="px-6 py-4 text-sm text-secondary">
+                  {{ r[3].strftime('%d.%m.%Y') if r[3] else '-' }}
+                </td>
+                <td class="px-6 py-4 text-right">
+                  <a
+                    href="{{ url_for('admin.delete_content', type='route', id=r[0]) }}"
+                    onclick="return confirm('Sil?')"
+                    class="text-xs bg-red-50 text-red-600 px-3 py-1.5 rounded hover:bg-red-100 font-bold transition-colors"
+                    >Sil</a
                   >
-                </div>
-                <a
-                  href="{{ url_for('admin.delete_content', type='event', id=e[0]) }}"
-                  class="btn btn-sm btn-danger py-0"
-                  onclick="return confirm('Sil?')"
-                  >Sil</a
-                >
-              </li>
+                </td>
+              </tr>
               {% endfor %}
-            </ul>
-          </div>
+            </tbody>
+          </table>
         </div>
       </div>
-    </div>
 
-    <div class="tab-pane fade" id="definitions">
-      <div class="row">
-        <div class="col-md-5">
-          <div class="card shadow-sm border-0 mb-4">
-            <div class="card-header bg-success text-white fw-bold">
-              <i class="fas fa-heart"></i> İlgi Alanları
-            </div>
-            <div class="card-body">
-              <form
-                action="{{ url_for('admin.add_hobby') }}"
-                method="POST"
-                class="mb-4 border-bottom pb-4"
-              >
-                <label class="small text-muted mb-1"
-                  >Yeni İlgi Alanı Ekle</label
-                >
-                <div class="input-group">
-                  <input
-                    type="text"
-                    name="hobby_name"
-                    class="form-control"
-                    placeholder="Örn: Dağcılık"
-                    required
-                  />
-                  <button class="btn btn-success" type="submit">
-                    <i class="fas fa-plus"></i>
-                  </button>
-                </div>
-              </form>
+      <div
+        id="section-clubs"
+        class="content-section hidden space-y-6 animate-fade-in"
+      >
+        <div class="flex justify-between items-center">
+          <h2 class="text-2xl font-bold text-[#121614]">Kulüp Yönetimi</h2>
+          <span
+            class="bg-red-50 text-red-600 px-3 py-1 rounded-full text-xs font-bold border border-red-100"
+            >{{ clubs|length }} Kulüp</span
+          >
+        </div>
 
-              <h6 class="fw-bold text-muted mb-2">
-                Mevcut Listesi ({{ hobbies|length }})
-              </h6>
-              <ul
-                class="list-group"
-                style="max-height: 300px; overflow-y: auto"
-              >
-                {% for hobby in hobbies %}
-                <li
-                  class="list-group-item d-flex justify-content-between align-items-center py-2"
-                >
-                  {{ hobby[1] }}
-                  <a
-                    href="{{ url_for('admin.delete_hobby', hobby_id=hobby[0]) }}"
-                    class="text-danger"
-                    onclick="return confirm('Silmek istediğine emin misin?')"
-                    title="Sil"
+        <div
+          class="bg-white rounded-xl border border-[#dde3e0] shadow-soft overflow-hidden"
+        >
+          <table class="w-full text-left">
+            <thead
+              class="bg-slate-50 border-b border-[#dde3e0] text-xs font-bold text-secondary uppercase"
+            >
+              <tr>
+                <th class="px-6 py-4">Kulüp Adı</th>
+                <th class="px-6 py-4">Kurucu</th>
+                <th class="px-6 py-4">Üye Sayısı</th>
+                <th class="px-6 py-4">Kuruluş</th>
+                <th class="px-6 py-4 text-right">İşlem</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-[#dde3e0]">
+              {% for c in clubs %}
+              <tr class="hover:bg-slate-50 transition-colors">
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="size-10 rounded-lg bg-cover bg-center border border-slate-200 shrink-0"
+                      style="background-image: url('{{ c[5] if c[5] else 'https://loremflickr.com/200/200/nature?lock=' ~ c[0] }}');"
+                    ></div>
+                    <a
+                      href="{{ url_for('main.club_detail', club_id=c[0]) }}"
+                      class="font-bold text-[#121614] hover:text-primary"
+                      target="_blank"
+                      >{{ c[1] }}</a
+                    >
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-sm font-medium text-slate-700">
+                  {{ c[2] if c[2] else 'Bilinmiyor' }}
+                </td>
+                <td class="px-6 py-4">
+                  <span
+                    class="inline-flex items-center gap-1 bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-bold"
                   >
-                    <i class="fas fa-trash-alt"></i>
-                  </a>
-                </li>
-                {% endfor %}
-              </ul>
+                    <span class="material-symbols-outlined text-[14px]"
+                      >group</span
+                    >
+                    {{ c[3] }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-sm text-secondary">
+                  {{ c[4].strftime('%d.%m.%Y') }}
+                </td>
+                <td class="px-6 py-4 text-right">
+                  <a
+                    href="{{ url_for('admin.delete_content', type='club', id=c[0]) }}"
+                    onclick="return confirm('Bu kulübü silmek istediğine emin misin?')"
+                    class="text-xs bg-red-50 text-red-600 px-3 py-1.5 rounded hover:bg-red-100 font-bold transition-colors"
+                    >Sil</a
+                  >
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="5" class="px-6 py-8 text-center text-slate-400">
+                  Henüz hiç kulüp kurulmamış.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div
+        id="section-settings"
+        class="content-section hidden space-y-10 animate-fade-in"
+      >
+        <h2 class="text-2xl font-bold text-[#121614]">Sistem Tanımlamaları</h2>
+
+        <div
+          class="bg-white rounded-xl border border-[#dde3e0] shadow-soft p-8"
+        >
+          <div
+            class="flex justify-between items-center mb-6 border-b border-[#dde3e0] pb-4"
+          >
+            <h3
+              class="text-xl font-bold text-[#121614] flex items-center gap-2"
+            >
+              <span class="material-symbols-outlined text-primary"
+                >military_tech</span
+              >
+              Rütbe Yönetimi
+            </h3>
+          </div>
+
+          <form
+            action="{{ url_for('admin.add_rank') }}"
+            method="POST"
+            class="grid grid-cols-1 md:grid-cols-12 gap-4 mb-8 bg-slate-50 p-6 rounded-xl border border-slate-100"
+          >
+            <div class="md:col-span-4">
+              <label class="block text-xs font-bold text-[#121614] mb-1"
+                >Rütbe Adı</label
+              >
+              <input
+                type="text"
+                name="name"
+                class="w-full rounded-lg border-[#dde3e0] text-sm focus:ring-primary focus:border-primary"
+                placeholder="Örn: Efsanevi"
+                required
+              />
             </div>
+            <div class="md:col-span-3">
+              <label class="block text-xs font-bold text-[#121614] mb-1"
+                >Min. Puan</label
+              >
+              <input
+                type="number"
+                name="min_points"
+                class="w-full rounded-lg border-[#dde3e0] text-sm focus:ring-primary focus:border-primary"
+                placeholder="5000"
+                required
+              />
+            </div>
+            <div class="md:col-span-3">
+              <label class="block text-xs font-bold text-[#121614] mb-1"
+                >Renk</label
+              >
+              <select
+                name="color_key"
+                class="w-full rounded-lg border-[#dde3e0] text-sm focus:ring-primary focus:border-primary"
+              >
+                {% for key, val in rank_colors.items() %}
+                <option value="{{ key }}">{{ val.label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="md:col-span-2 flex items-end">
+              <button
+                type="submit"
+                class="w-full py-2 bg-primary text-white rounded-lg font-bold hover:bg-primary-hover transition-colors"
+              >
+                Ekle
+              </button>
+            </div>
+          </form>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead
+                class="bg-slate-50 text-secondary font-bold border-b border-[#dde3e0]"
+              >
+                <tr>
+                  <th class="px-4 py-3">Min Puan</th>
+                  <th class="px-4 py-3">Rütbe Adı</th>
+                  <th class="px-4 py-3">Görünüm</th>
+                  <th class="px-4 py-3 text-right">İşlem</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#dde3e0]">
+                {% for rank in ranks %}
+                <tr class="hover:bg-slate-50">
+                  <td class="px-4 py-3 font-mono font-bold">{{ rank[2] }}</td>
+                  <td class="px-4 py-3 font-bold">{{ rank[1] }}</td>
+                  <td class="px-4 py-3">
+                    <span
+                      class="px-2 py-1 rounded text-xs font-bold border {{ rank[3] }}"
+                    >
+                      {{ rank[1] }}
+                    </span>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <a
+                      href="{{ url_for('admin.delete_rank', rank_id=rank[0]) }}"
+                      onclick="return confirm('Sil?')"
+                      class="text-red-500 hover:text-red-700 font-bold"
+                      >Sil</a
+                    >
+                  </td>
+                </tr>
+                {% else %}
+                <tr>
+                  <td colspan="4" class="p-4 text-center text-secondary">
+                    Kayıt yok.
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
           </div>
         </div>
 
-        <div class="col-md-7">
-          <div class="card shadow-sm border-0 mb-4">
-            <div class="card-header bg-warning text-dark fw-bold">
-              <i class="fas fa-medal"></i> Rozetler
-            </div>
-            <div class="card-body">
-              <form
-                action="{{ url_for('admin.add_badge') }}"
-                method="POST"
-                class="mb-4 border-bottom pb-4"
+        <div
+          class="bg-white rounded-xl border border-[#dde3e0] shadow-soft p-8"
+        >
+          <div
+            class="flex justify-between items-center mb-6 border-b border-[#dde3e0] pb-4"
+          >
+            <h3
+              class="text-xl font-bold text-[#121614] flex items-center gap-2"
+            >
+              <span class="material-symbols-outlined text-yellow-500"
+                >military_tech</span
               >
-                <label class="small text-muted mb-2">Yeni Rozet Tanımla</label>
-                <div class="row g-2">
-                  <div class="col-md-6">
-                    <input
-                      type="text"
-                      name="badge_name"
-                      class="form-control form-control-sm"
-                      placeholder="Rozet Adı (Örn: Usta)"
-                      required
-                    />
-                  </div>
-                  <div class="col-md-6">
-                    <input
-                      type="text"
-                      name="icon_url"
-                      class="form-control form-control-sm"
-                      placeholder="FontAwesome (fas fa-star)"
-                      required
-                    />
-                  </div>
-                  <div class="col-md-8">
-                    <input
-                      type="text"
-                      name="description"
-                      class="form-control form-control-sm"
-                      placeholder="Açıklama"
-                      required
-                    />
-                  </div>
-                  <div class="col-md-4">
-                    <input
-                      type="number"
-                      name="required_value"
-                      class="form-control form-control-sm"
-                      placeholder="Puan Hedefi"
-                      required
-                    />
-                  </div>
-                  <div class="col-12 mt-2">
-                    <button
-                      class="btn btn-warning w-100 btn-sm fw-bold"
-                      type="submit"
-                    >
-                      <i class="fas fa-plus-circle"></i> Rozet Oluştur
-                    </button>
-                  </div>
-                </div>
-              </form>
+              Rozetler
+            </h3>
+          </div>
 
-              <h6 class="fw-bold text-muted mb-2">
-                Tanımlı Rozetler ({{ badges|length }})
-              </h6>
-              <div class="table-responsive" style="max-height: 300px">
-                <table class="table table-sm table-hover align-middle">
-                  <thead class="table-light">
-                    <tr>
-                      <th>İkon</th>
-                      <th>Ad</th>
-                      <th>Hedef</th>
-                      <th>İşlem</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% for badge in badges %}
-                    <tr>
-                      <td class="text-center text-warning">
-                        <i class="{{ badge[3] }}"></i>
-                      </td>
-                      <td class="fw-bold">{{ badge[1] }}</td>
-                      <td>
-                        <span class="badge bg-light text-dark border"
-                          >{{ badge[5] }} Puan</span
-                        >
-                      </td>
-                      <td>
-                        <a
-                          href="{{ url_for('admin.delete_badge', badge_id=badge[0]) }}"
-                          class="btn btn-sm btn-outline-danger py-0"
-                          onclick="return confirm('Silmek istediğine emin misin?')"
-                        >
-                          Sil
-                        </a>
-                      </td>
-                    </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
+          <form
+            action="{{ url_for('admin.add_badge') }}"
+            method="POST"
+            class="grid grid-cols-1 md:grid-cols-12 gap-4 mb-8 bg-slate-50 p-6 rounded-xl border border-slate-100"
+          >
+            <div class="md:col-span-3">
+              <label class="block text-xs font-bold text-[#121614] mb-1"
+                >Rozet Adı</label
+              >
+              <input
+                type="text"
+                name="badge_name"
+                class="w-full rounded-lg border-[#dde3e0] text-sm"
+                placeholder="Örn: Usta"
+                required
+              />
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-xs font-bold text-[#121614] mb-1"
+                >Puan</label
+              >
+              <input
+                type="number"
+                name="required_value"
+                class="w-full rounded-lg border-[#dde3e0] text-sm"
+                placeholder="100"
+                required
+              />
+            </div>
+            <div class="md:col-span-4">
+              <label class="block text-xs font-bold text-[#121614] mb-1"
+                >Açıklama</label
+              >
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  name="description"
+                  class="w-full rounded-lg border-[#dde3e0] text-sm"
+                  placeholder="Kısa açıklama..."
+                  required
+                />
+                <button
+                  type="submit"
+                  class="bg-yellow-500 text-white px-4 rounded-lg font-bold hover:bg-yellow-600"
+                >
+                  Oluştur
+                </button>
               </div>
             </div>
+
+            <div class="md:col-span-12 mt-2">
+              <label class="block text-xs font-bold text-[#121614] mb-2"
+                >Rozet İkonu</label
+              >
+              <div class="flex flex-wrap gap-3">
+                {% for key, label in badge_icons.items() %}
+                <label class="cursor-pointer group relative">
+                  <input
+                    type="radio"
+                    name="icon_url"
+                    value="{{ key }}"
+                    class="peer sr-only"
+                    {%
+                    if
+                    loop.first
+                    %}checked{%
+                    endif
+                    %}
+                  />
+                  <div
+                    class="size-10 rounded-lg border-2 border-slate-200 bg-white flex items-center justify-center text-slate-400 peer-checked:bg-yellow-50 peer-checked:text-yellow-600 peer-checked:border-yellow-500 hover:border-yellow-300 transition-all shadow-sm"
+                  >
+                    <i class="{{ key }} text-lg"></i>
+                  </div>
+                  <span
+                    class="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none"
+                  >
+                    {{ label }}
+                  </span>
+                </label>
+                {% endfor %}
+              </div>
+            </div>
+          </form>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead
+                class="bg-slate-50 text-xs font-bold text-secondary uppercase border-b border-[#dde3e0]"
+              >
+                <tr>
+                  <th class="px-4 py-3">İkon</th>
+                  <th class="px-4 py-3">Ad</th>
+                  <th class="px-4 py-3">Açıklama</th>
+                  <th class="px-4 py-3">Puan</th>
+                  <th class="px-4 py-3 text-right">İşlem</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#dde3e0]">
+                {% for badge in badges %}
+                <tr class="hover:bg-slate-50 transition-colors">
+                  <td class="px-4 py-3 text-yellow-500 text-lg">
+                    {% if badge[3] %}
+                    <i class="{{ badge[3] }}"></i>
+                    {% else %}
+                    <span class="text-gray-300">-</span>
+                    {% endif %}
+                  </td>
+                  <td class="px-4 py-3 font-bold text-[#121614]">
+                    {{ badge[1] }}
+                  </td>
+                  <td class="px-4 py-3 text-sm text-secondary">
+                    {{ badge[2] }}
+                  </td>
+                  <td class="px-4 py-3">
+                    <span
+                      class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-bold"
+                      >{{ badge[5] }} Puan</span
+                    >
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <a
+                      href="{{ url_for('admin.delete_badge', badge_id=badge[0]) }}"
+                      onclick="return confirm('Sil?')"
+                      class="text-red-500 hover:text-red-700 text-sm font-bold"
+                      >Sil</a
+                    >
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div
+          class="bg-white rounded-xl border border-[#dde3e0] shadow-soft p-8"
+        >
+          <div
+            class="flex justify-between items-center mb-6 border-b border-[#dde3e0] pb-4"
+          >
+            <h3
+              class="text-xl font-bold text-[#121614] flex items-center gap-2"
+            >
+              <span class="material-symbols-outlined text-green-600"
+                >favorite</span
+              >
+              İlgi Alanları
+            </h3>
+          </div>
+
+          <form
+            action="{{ url_for('admin.add_hobby') }}"
+            method="POST"
+            class="mb-8 bg-slate-50 p-6 rounded-xl border border-slate-100"
+          >
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+              <div class="md:col-span-8">
+                <label class="block text-xs font-bold text-[#121614] mb-1"
+                  >Hobi Adı</label
+                >
+                <input
+                  type="text"
+                  name="hobby_name"
+                  class="w-full rounded-lg border-[#dde3e0] text-sm py-2.5 focus:ring-green-500 focus:border-green-500"
+                  placeholder="Örn: Kampçılık"
+                  required
+                />
+              </div>
+              <div class="md:col-span-4 flex items-end">
+                <button
+                  type="submit"
+                  class="w-full bg-green-600 text-white py-2.5 rounded-lg hover:bg-green-700 font-bold transition-colors shadow-sm"
+                >
+                  <i class="fas fa-plus mr-2"></i> Ekle
+                </button>
+              </div>
+
+              <div class="md:col-span-12 mt-2">
+                <label class="block text-xs font-bold text-[#121614] mb-2"
+                  >İkon Seç</label
+                >
+                <div class="flex flex-wrap gap-3">
+                  {% for key, label in hobby_icons.items() %}
+                  <label class="cursor-pointer group relative">
+                    <input
+                      type="radio"
+                      name="icon_url"
+                      value="{{ key }}"
+                      class="peer sr-only"
+                      {%
+                      if
+                      loop.first
+                      %}checked{%
+                      endif
+                      %}
+                    />
+                    <div
+                      class="size-10 rounded-lg border-2 border-slate-200 bg-white flex items-center justify-center text-slate-400 peer-checked:bg-green-50 peer-checked:text-green-600 peer-checked:border-green-500 hover:border-green-300 transition-all shadow-sm"
+                    >
+                      <i class="{{ key }} text-lg"></i>
+                    </div>
+                    <span
+                      class="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none"
+                    >
+                      {{ label }}
+                    </span>
+                  </label>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </form>
+
+          <div
+            class="flex flex-wrap gap-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar"
+          >
+            {% for hobby in hobbies %}
+            <div
+              class="flex items-center gap-3 px-4 py-3 bg-white rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-shadow group"
+            >
+              <div
+                class="size-8 rounded-full bg-green-50 flex items-center justify-center text-green-600"
+              >
+                <i class="{{ hobby[2] }} text-sm"></i>
+              </div>
+              <span class="text-sm font-bold text-gray-700"
+                >{{ hobby[1] }}</span
+              >
+              <a
+                href="{{ url_for('admin.delete_hobby', hobby_id=hobby[0]) }}"
+                onclick="return confirm('Sil?')"
+                class="ml-2 text-slate-300 hover:text-red-500 transition-colors"
+              >
+                <i class="fas fa-times"></i>
+              </a>
+            </div>
+            {% endfor %}
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </main>
 </div>
+
+<script>
+  function showSection(sectionId) {
+    document
+      .querySelectorAll(".content-section")
+      .forEach((el) => el.classList.add("hidden"));
+    document.getElementById("section-" + sectionId).classList.remove("hidden");
+
+    document.querySelectorAll(".nav-btn").forEach((btn) => {
+      btn.classList.remove("bg-primary/10", "text-primary");
+      btn.classList.add(
+        "text-secondary",
+        "hover:bg-slate-50",
+        "hover:text-[#121614]"
+      );
+    });
+
+    const activeBtn = document.getElementById("btn-" + sectionId);
+    if (activeBtn) {
+      activeBtn.classList.remove(
+        "text-secondary",
+        "hover:bg-slate-50",
+        "hover:text-[#121614]"
+      );
+      activeBtn.classList.add("bg-primary/10", "text-primary");
+    }
+  }
+</script>
+
+<style>
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+  }
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+  }
+</style>
 {% endblock %}

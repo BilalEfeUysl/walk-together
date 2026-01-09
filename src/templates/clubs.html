@@ -1,97 +1,156 @@
-{% extends 'base.html' %} {% block content %}
-<div class="text-center mb-5">
-  <h1 class="display-5 fw-bold text-success">Topluluklar & Kulüpler 🌿</h1>
-  <p class="lead text-muted mb-4">
-    İlgi alanına uygun bir kulübe katıl, yeni yürüyüş arkadaşları edin.
-  </p>
-
-  <div class="row justify-content-center mb-4">
-    <div class="col-md-6">
-      <form
-        action="/clubs"
-        method="GET"
-        class="d-flex shadow-sm rounded-pill p-1 bg-white border"
+{% extends "base.html" %} {% block content %}
+<div
+  class="flex flex-col items-center w-full min-h-screen bg-background-light dark:bg-background-dark font-display"
+>
+  <div
+    class="w-full max-w-[1280px] px-4 md:px-10 py-8 md:py-12 flex flex-col gap-8"
+  >
+    <div class="flex flex-col gap-8">
+      <div
+        class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4"
       >
-        <input
-          type="text"
-          name="q"
-          class="form-control border-0 rounded-pill shadow-none ps-4"
-          placeholder="Kulüp adı veya açıklama ara..."
-          value="{{ search_query }}"
-        />
-        <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">
+        <div class="flex flex-col max-w-2xl gap-3">
+          <h1
+            class="text-text-main dark:text-white text-4xl md:text-5xl font-black leading-tight tracking-[-0.033em]"
+          >
+            Kulübünü Bul
+          </h1>
+          <p
+            class="text-text-secondary dark:text-gray-400 text-lg font-normal leading-relaxed"
+          >
+            Doğa tutkunlarıyla bağlantı kur, yeni rotaları birlikte keşfet ve
+            senin tempona uyan bir topluluk bul.
+          </p>
+        </div>
+
+        <a
+          href="{{ url_for('main.create_club') }}"
+          class="shrink-0 flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white font-bold hover:bg-[#25573a] transition-colors shadow-lg shadow-primary/20"
+        >
+          <span class="material-symbols-outlined">add_circle</span>
+          <span>Yeni Kulüp Oluştur</span>
+        </a>
+      </div>
+
+      <form
+        action="{{ url_for('main.clubs') }}"
+        method="GET"
+        class="w-full bg-white dark:bg-[#1e2a24] p-2 rounded-xl shadow-sm border border-[#e8ebe9] dark:border-[#2a3630] flex gap-2"
+      >
+        <div
+          class="flex-1 flex items-center rounded-lg bg-[#f1f3f2] dark:bg-[#2a3630] h-12 px-4 focus-within:ring-2 focus-within:ring-primary/50 transition-all"
+        >
+          <span
+            class="material-symbols-outlined text-text-secondary dark:text-gray-400"
+            >search</span
+          >
+          <input
+            name="q"
+            value="{{ request.args.get('q', '') }}"
+            class="w-full bg-transparent border-none focus:ring-0 text-text-main dark:text-white placeholder:text-text-secondary dark:placeholder:text-gray-500 px-3 text-base"
+            placeholder="Kulüp adı veya açıklama ara..."
+          />
+
+          {% if request.args.get('q') %}
+          <a
+            href="{{ url_for('main.clubs') }}"
+            class="text-text-secondary hover:text-red-500 transition-colors"
+            title="Aramayı Temizle"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </a>
+          {% endif %}
+        </div>
+        <button
+          type="submit"
+          class="px-6 h-12 bg-primary hover:bg-[#25573a] text-white font-bold rounded-lg transition-colors shadow-sm"
+        >
           Ara
         </button>
       </form>
     </div>
-  </div>
 
-  <a href="/create_club" class="btn btn-outline-primary rounded-pill px-4">
-    <i class="fas fa-plus-circle"></i> Yeni Kulüp Kur
-  </a>
-</div>
-
-<div class="row">
-  {% for club in clubs %}
-  <div class="col-md-4 mb-4">
-    <div class="card h-100 shadow border-0 hover-shadow">
-      <img
-        src="https://loremflickr.com/500/300/people,hiking,camping?lock={{ loop.index }}"
-        class="card-img-top"
-        alt="Kulüp Resmi"
-        style="height: 200px; object-fit: cover"
-      />
-
-      <div class="card-body text-center d-flex flex-column">
-        <h4 class="card-title fw-bold text-dark">
-          {{ club[1] }} {% if club[6] %}
-          <i
-            class="fas fa-fire text-danger"
-            title="Popüler Topluluk!"
-            data-bs-toggle="tooltip"
-          ></i>
-          {% endif %}
-        </h4>
-        <p class="card-text text-muted small flex-grow-1">{{ club[2] }}</p>
-
-        <div class="d-flex justify-content-center gap-2 my-3">
-          <span class="badge bg-light text-dark border">
-            <i class="fas fa-crown text-warning"></i> {{ club[4] }}
-          </span>
-          <span class="badge bg-light text-dark border">
-            <i class="fas fa-users text-info"></i> {{ club[5] }} Üye
-          </span>
+    <div
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mt-4"
+    >
+      {% for club in clubs %}
+      <div
+        class="group flex flex-col h-full bg-white dark:bg-[#1e2a24] rounded-xl shadow-sm border border-[#e8ebe9] dark:border-[#2a3630] overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+      >
+        <div class="relative w-full aspect-[16/10] overflow-hidden">
+          <div
+            class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+            style="background-image: url('https://picsum.photos/seed/club{{ club[0] }}/600/400');"
+          ></div>
         </div>
 
-        <div class="card-footer bg-white border-top-0 p-0 pb-3">
-          <a
-            href="/club/{{ club[0] }}"
-            class="btn btn-outline-success w-100 rounded-pill"
+        <div class="flex flex-col flex-1 p-5 md:p-6 gap-4">
+          <div class="flex-1">
+            <h3
+              class="text-text-main dark:text-white text-xl font-bold leading-tight mb-2 group-hover:text-primary transition-colors"
+            >
+              {{ club[1] }}
+            </h3>
+            <p
+              class="text-text-secondary dark:text-gray-400 text-sm leading-relaxed line-clamp-3"
+            >
+              {{ club[2] }}
+            </p>
+          </div>
+
+          <div
+            class="pt-4 border-t border-[#f1f3f2] dark:border-[#2a3630] flex flex-col gap-4"
           >
-            Kulübü İncele <i class="fas fa-arrow-right ms-1"></i>
-          </a>
+            {% if club[3] or club[4] %}
+            <div
+              class="flex items-center justify-between text-sm text-text-secondary dark:text-gray-400"
+            >
+              {% if club[3] and club[3] != 'None' %}
+              <div class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined" style="font-size: 18px"
+                  >calendar_today</span
+                >
+                <span>{{ club[3] }}</span>
+              </div>
+              {% endif %} {% if club[4] and club[4] != 'None' %}
+              <div class="flex items-center gap-1.5" title="Yönetici ID">
+                <span class="material-symbols-outlined" style="font-size: 18px"
+                  >badge</span
+                >
+                <span>Yönetici: {{ club[4] }}</span>
+              </div>
+              {% endif %}
+            </div>
+            {% endif %}
+
+            <a
+              href="{{ url_for('main.club_detail', club_id=club[0]) }}"
+              class="flex w-full items-center justify-center rounded-lg h-10 px-4 bg-primary hover:bg-[#25573a] text-white text-sm font-bold tracking-wide transition-colors"
+            >
+              Kulübü Ziyaret Et
+            </a>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
-  {% else %}
-  <div class="col-12">
-    <div class="alert alert-light text-center py-5 border">
-      <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
-      <p class="lead text-muted">Aradığınız kriterde kulüp bulunamadı.</p>
-      <a href="/clubs" class="btn btn-sm btn-outline-secondary"
-        >Tüm Kulüpleri Göster</a
+      {% else %}
+      <div
+        class="col-span-full flex flex-col items-center justify-center py-16 text-center"
       >
+        <div class="bg-gray-100 dark:bg-gray-800 p-6 rounded-full mb-4">
+          <span class="material-symbols-outlined text-5xl text-gray-400"
+            >diversity_3</span
+          >
+        </div>
+        <h3 class="text-xl font-bold text-text-main dark:text-white mb-2">
+          Kulüp Bulunamadı
+        </h3>
+        <p class="text-text-secondary dark:text-gray-400 max-w-md">
+          Aradığınız kriterlere uygun bir kulüp yok. Kendi topluluğunu
+          oluşturmaya ne dersin?
+        </p>
+      </div>
+      {% endfor %}
     </div>
   </div>
-  {% endfor %}
 </div>
-
-<style>
-  .hover-shadow:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15) !important;
-    transition: all 0.3s ease;
-  }
-</style>
 {% endblock %}

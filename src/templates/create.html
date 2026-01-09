@@ -8,343 +8,624 @@
   href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css"
 />
 
-<div class="row justify-content-center">
-  <div class="col-lg-10">
-    <div class="card shadow-lg border-0 rounded-4">
-      <div class="card-header bg-white border-bottom-0 pt-4 px-5">
-        <h2 class="fw-bold text-success text-center mb-0">Yeni Oluştur</h2>
+<style>
+  /* Routing panelini gizle */
+  .leaflet-routing-container {
+    display: none !important;
+  }
 
-        <ul
-          class="nav nav-pills justify-content-center mt-4"
-          id="createTabs"
-          role="tablist"
+  /* Input odaklanma stilleri */
+  .form-input:focus,
+  .custom-select:focus {
+    outline: none;
+    border-color: #2d6c4e;
+    box-shadow: 0 0 0 3px rgba(45, 108, 78, 0.1);
+  }
+
+  /* Popup Tasarımı */
+  .leaflet-popup-content-wrapper {
+    border-radius: 12px;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+  .leaflet-popup-content {
+    margin: 0;
+    width: auto !important;
+  }
+
+  /* --- GÜNCELLENMİŞ MARKER TASARIMI (Mavi Damla & Beyaz İç) --- */
+  .custom-div-icon {
+    background: transparent;
+    border: none;
+  }
+
+  .marker-pin {
+    width: 36px;
+    height: 36px;
+    border-radius: 50% 50% 50% 0;
+    background: #0ea5e9; /* Sky Blue (Resimdeki mavi tonu) */
+    position: absolute;
+    transform: rotate(-45deg);
+    left: 50%;
+    top: 50%;
+    margin: -18px 0 0 -18px;
+    box-shadow: -2px 2px 5px rgba(0, 0, 0, 0.3); /* Gölge yönü */
+  }
+
+  /* İçteki Beyaz Daire */
+  .marker-pin::after {
+    content: "";
+    width: 20px;
+    height: 20px;
+    margin: 8px 0 0 8px; /* Ortalamak için */
+    background: #ffffff;
+    position: absolute;
+    border-radius: 50%;
+  }
+
+  /* İçindeki Yazı/İkon */
+  .marker-pin-inner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(45deg); /* Yazıyı düzeltmek için ters çevir */
+    z-index: 10;
+    font-weight: 800;
+    font-size: 14px;
+    color: #0f172a; /* Siyah (Koyu Slate) */
+    width: 100%;
+    text-align: center;
+    line-height: 0; /* Dikey ortalama için */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px; /* Pin yüksekliğiyle aynı */
+  }
+
+  /* Başlangıç (Yeşil) */
+  .marker-start .marker-pin {
+    background: #10b981;
+  }
+  /* Bitiş (Kırmızı) */
+  .marker-end .marker-pin {
+    background: #ef4444;
+  }
+
+  /* Scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 20px;
+  }
+</style>
+
+<div class="flex items-center justify-center py-12 px-4 sm:px-6 font-display">
+  <div
+    class="w-full max-w-4xl bg-white dark:bg-[#1e2621] rounded-3xl shadow-xl border border-slate-100 dark:border-[#2a362f] overflow-hidden"
+  >
+    <div
+      class="px-8 py-8 border-b border-slate-100 dark:border-[#2a362f] bg-slate-50/50 dark:bg-[#151d19]"
+    >
+      <div class="text-center mb-8">
+        <h2
+          class="text-3xl font-black text-slate-900 dark:text-white tracking-tight"
         >
-          <li class="nav-item">
-            <button
-              class="nav-link active rounded-pill px-4"
-              id="event-tab"
-              data-bs-toggle="tab"
-              data-bs-target="#eventPanel"
-              type="button"
-            >
-              📅 Etkinlik Oluştur
-            </button>
-          </li>
-          <li class="nav-item">
-            <button
-              class="nav-link rounded-pill px-4"
-              id="route-tab"
-              data-bs-toggle="tab"
-              data-bs-target="#routePanel"
-              type="button"
-            >
-              📍 Sadece Rota Kaydet
-            </button>
-          </li>
-        </ul>
+          Yeni İçerik Oluştur
+        </h2>
+        <p class="text-slate-500 dark:text-slate-400 font-medium mt-2">
+          Toplulukla paylaşmak istediğin macerayı seç.
+        </p>
       </div>
+      <div
+        class="flex p-1.5 bg-slate-200/50 dark:bg-[#2a362f] rounded-2xl max-w-md mx-auto"
+      >
+        <button
+          onclick="switchCreateTab('event')"
+          id="btn-tab-event"
+          class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all shadow-sm bg-white dark:bg-slate-700 text-primary dark:text-white"
+        >
+          <span class="material-symbols-outlined text-[20px]"
+            >calendar_add_on</span
+          >
+          Etkinlik
+        </button>
+        <button
+          onclick="switchCreateTab('route')"
+          id="btn-tab-route"
+          class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all"
+        >
+          <span class="material-symbols-outlined text-[20px]">map</span> Sadece
+          Rota
+        </button>
+      </div>
+    </div>
 
-      <div class="card-body p-5">
-        <div class="tab-content" id="createTabsContent">
-          <div class="tab-pane fade show active" id="eventPanel">
-            <form method="POST" action="/create">
-              <input type="hidden" name="form_type" value="event" />
-              <div class="mb-3">
-                <label class="form-label fw-bold">Etkinlik Başlığı</label>
-                <input
-                  type="text"
-                  name="title"
-                  class="form-control"
-                  placeholder="Örn: Pazar Sabahı Doğa Yürüyüşü"
+    <div class="p-8 md:p-10">
+      <div id="panel-event" class="block animate-fade-in">
+        <form
+          method="POST"
+          action="/create"
+          onsubmit="return prepareFormData('event')"
+        >
+          <input type="hidden" name="form_type" value="event" />
+
+          <div class="mb-6">
+            <label
+              class="block text-sm font-bold text-slate-900 dark:text-white mb-2"
+              >Etkinlik Başlığı</label
+            >
+            <input
+              type="text"
+              name="title"
+              class="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-[#2a362f] bg-slate-50 dark:bg-[#151d19] text-slate-900 dark:text-white placeholder-slate-400 font-medium form-input transition-all"
+              placeholder="Örn: Pazar Sabahı Belgrad Koşusu"
+              required
+            />
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <label
+                class="block text-sm font-bold text-slate-900 dark:text-white mb-2"
+                >Kategori</label
+              >
+              <div class="relative">
+                <select
+                  name="category_id"
+                  class="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-[#2a362f] bg-slate-50 dark:bg-[#151d19] text-slate-900 dark:text-white font-medium appearance-none cursor-pointer custom-select transition-all"
                   required
-                />
-              </div>
-              <h5 class="fw-bold mb-3 border-bottom pb-2">
-                1. Etkinlik Detayları
-              </h5>
-              <div class="row mb-3">
-                <div class="col-md-6">
-                  <label class="form-label fw-bold">Kategori</label>
-                  <select
-                    name="category_id"
-                    class="form-select bg-light"
-                    required
-                  >
-                    {% for cat in categories %}
-                    <option value="{{ cat[0] }}">{{ cat[1] }}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-bold">Tarih ve Saat</label>
-                  <input
-                    type="datetime-local"
-                    name="event_date"
-                    class="form-control bg-light"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div class="row mb-3">
-                <div class="col-md-6">
-                  <label class="form-label fw-bold">Kontenjan</label>
-                  <input
-                    type="number"
-                    name="max_participants"
-                    class="form-control bg-light"
-                    value="20"
-                    required
-                  />
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-bold">Açıklama</label>
-                  <input
-                    type="text"
-                    name="description"
-                    class="form-control bg-light"
-                    placeholder="Kısa bir açıklama..."
-                    required
-                  />
-                </div>
-              </div>
-
-              <h5 class="fw-bold mt-5 mb-3 border-bottom pb-2">
-                2. Rota Seçimi
-              </h5>
-
-              <div class="mb-3">
-                <div class="btn-group w-100" role="group">
-                  <input
-                    type="radio"
-                    class="btn-check"
-                    name="route_selection_mode"
-                    id="modeExisting"
-                    value="existing"
-                    checked
-                    onchange="toggleRouteMode()"
-                  />
-                  <label class="btn btn-outline-success" for="modeExisting"
-                    ><i class="fas fa-list"></i> Hazır Rota Seç</label
-                  >
-
-                  <input
-                    type="radio"
-                    class="btn-check"
-                    name="route_selection_mode"
-                    id="modeNew"
-                    value="new"
-                    onchange="toggleRouteMode()"
-                  />
-                  <label class="btn btn-outline-primary" for="modeNew"
-                    ><i class="fas fa-map-marker-alt"></i> Yeni Rota Çiz</label
-                  >
-                </div>
-              </div>
-
-              <div id="existingRouteDiv">
-                <select name="route_id" class="form-select form-select-lg mb-3">
-                  <option value="" disabled selected>Bir rota seçin...</option>
-                  {% for r in routes %}
-                  <option value="{{ r[0] }}">{{ r[1] }} ({{ r[2] }} km)</option>
+                >
+                  {% for cat in categories %}
+                  <option value="{{ cat[0] }}">{{ cat[1] }}</option>
                   {% endfor %}
                 </select>
+                <span
+                  class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                  >expand_more</span
+                >
               </div>
+            </div>
+            <div>
+              <label
+                class="block text-sm font-bold text-slate-900 dark:text-white mb-2"
+                >Tarih ve Saat</label
+              >
+              <input
+                type="datetime-local"
+                name="event_date"
+                class="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-[#2a362f] bg-slate-50 dark:bg-[#151d19] text-slate-900 dark:text-white font-medium form-input transition-all"
+                required
+              />
+            </div>
+          </div>
 
-              <div id="newRouteDiv" style="display: none">
-                <div class="row mb-3">
-                  <div class="col-md-6">
-                    <label class="form-label fw-bold">Rota Adı</label>
-                    <input
-                      type="text"
-                      name="new_route_name"
-                      class="form-control"
-                      placeholder="Örn: Belgrad Ormanı Turu"
-                    />
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div>
+              <label
+                class="block text-sm font-bold text-slate-900 dark:text-white mb-2"
+                >Kontenjan</label
+              >
+              <input
+                type="number"
+                name="max_participants"
+                class="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-[#2a362f] bg-slate-50 dark:bg-[#151d19] text-slate-900 dark:text-white font-medium form-input transition-all"
+                value="20"
+                required
+              />
+            </div>
+            <div>
+              <label
+                class="block text-sm font-bold text-slate-900 dark:text-white mb-2"
+                >Kısa Açıklama</label
+              >
+              <input
+                type="text"
+                name="description"
+                class="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-[#2a362f] bg-slate-50 dark:bg-[#151d19] text-slate-900 dark:text-white placeholder-slate-400 font-medium form-input transition-all"
+                placeholder="Buluşma noktası..."
+                required
+              />
+            </div>
+          </div>
+
+          <div
+            class="border-t border-slate-100 dark:border-[#2a362f] pt-8 mb-8"
+          >
+            <h3
+              class="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2"
+            >
+              <span class="material-symbols-outlined text-primary">map</span>
+              Rota Seçimi
+            </h3>
+
+            <div class="grid grid-cols-2 gap-4 mb-6">
+              <label class="cursor-pointer relative">
+                <input
+                  type="radio"
+                  name="route_selection_mode"
+                  value="existing"
+                  class="peer sr-only"
+                  checked
+                  onchange="toggleRouteMode()"
+                />
+                <div
+                  class="p-4 rounded-xl border-2 border-slate-200 dark:border-[#2a362f] bg-white dark:bg-[#1e2621] text-center peer-checked:border-primary peer-checked:bg-green-50 dark:peer-checked:bg-primary/10 transition-all"
+                >
+                  <span
+                    class="material-symbols-outlined text-3xl text-slate-400 peer-checked:text-primary mb-2 block"
+                    >format_list_bulleted</span
+                  >
+                  <span
+                    class="block font-bold text-slate-700 dark:text-slate-200 peer-checked:text-primary"
+                    >Hazır Rota Seç</span
+                  >
+                </div>
+              </label>
+              <label class="cursor-pointer relative">
+                <input
+                  type="radio"
+                  name="route_selection_mode"
+                  value="new"
+                  class="peer sr-only"
+                  onchange="toggleRouteMode()"
+                />
+                <div
+                  class="p-4 rounded-xl border-2 border-slate-200 dark:border-[#2a362f] bg-white dark:bg-[#1e2621] text-center peer-checked:border-primary peer-checked:bg-green-50 dark:peer-checked:bg-primary/10 transition-all"
+                >
+                  <span
+                    class="material-symbols-outlined text-3xl text-slate-400 peer-checked:text-primary mb-2 block"
+                    >edit_location_alt</span
+                  >
+                  <span
+                    class="block font-bold text-slate-700 dark:text-slate-200 peer-checked:text-primary"
+                    >Yeni Rota Çiz</span
+                  >
+                </div>
+              </label>
+            </div>
+
+            <div id="existingRouteDiv">
+              <div class="relative mb-4">
+                <span
+                  class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                  >search</span
+                >
+                <input
+                  type="text"
+                  id="routeSearchInput"
+                  onkeyup="filterRoutes()"
+                  placeholder="Rota ara..."
+                  class="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-[#2a362f] bg-white dark:bg-[#1e2621] text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                />
+              </div>
+              <input type="hidden" name="route_id" id="selectedRouteId" />
+              <div
+                id="routeListContainer"
+                class="max-h-[320px] overflow-y-auto custom-scrollbar p-1 space-y-2"
+              >
+                {% for r in routes %}
+                <div
+                  class="route-option cursor-pointer p-4 rounded-xl border border-slate-200 dark:border-[#2a362f] bg-white dark:bg-[#1e2621] hover:border-primary dark:hover:border-primary hover:shadow-md transition-all group relative"
+                  onclick="selectRoute('{{ r[0] }}', this)"
+                  data-name="{{ r[1]|lower }}"
+                >
+                  <div class="flex items-center justify-between gap-4">
+                    <div class="flex-1 min-w-0">
+                      <h6
+                        class="font-bold text-slate-900 dark:text-white text-lg truncate pr-2"
+                      >
+                        {{ r[1] }}
+                      </h6>
+                      <div
+                        class="flex items-center gap-3 text-xs font-medium text-slate-500 dark:text-slate-400 mt-1"
+                      >
+                        <span class="flex items-center gap-1"
+                          ><span class="material-symbols-outlined text-[14px]"
+                            >straighten</span
+                          >
+                          {{ r[2] }} km</span
+                        >
+                        <span class="w-1 h-1 rounded-full bg-slate-300"></span>
+                        <span class="flex items-center gap-1"
+                          ><span class="material-symbols-outlined text-[14px]"
+                            >terrain</span
+                          >
+                          {{ r[3] if r[3] else 'Belirsiz' }}</span
+                        >
+                        {% if r[4] and r[4] > 0 %}
+                        <span class="w-1 h-1 rounded-full bg-slate-300"></span>
+                        <span class="flex items-center gap-1 text-amber-500"
+                          ><span
+                            class="material-symbols-outlined text-[14px] fill-current"
+                            >star</span
+                          >
+                          {{ r[4] }}</span
+                        >
+                        {% endif %}
+                      </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 shrink-0 z-20">
+                      <a
+                        href="{{ url_for('main.route_detail', route_id=r[0]) }}"
+                        target="_blank"
+                        onclick="event.stopPropagation()"
+                        class="p-2 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                        title="Rotayı İncele"
+                      >
+                        <span class="material-symbols-outlined text-[20px]"
+                          >open_in_new</span
+                        >
+                      </a>
+
+                      <div
+                        class="selection-indicator size-6 rounded-full border-2 border-slate-300 dark:border-slate-600 group-hover:border-primary flex items-center justify-center transition-colors bg-white dark:bg-slate-800"
+                      >
+                        <div
+                          class="indicator-dot size-3 rounded-full bg-primary opacity-0 transform scale-0 transition-all duration-200"
+                        ></div>
+                      </div>
+                    </div>
                   </div>
-                  <div class="col-md-6">
-                    <label class="form-label fw-bold"
-                      >Zorluk Seviyesi (Otomatik)</label
-                    >
+
+                  <div
+                    class="absolute inset-0 border-2 border-primary rounded-xl opacity-0 scale-95 transition-all pointer-events-none selection-border z-10"
+                  ></div>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div id="newRouteDiv" class="hidden space-y-6">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label
+                    class="block text-sm font-bold text-slate-900 dark:text-white mb-2"
+                    >Rota Adı</label
+                  >
+                  <input
+                    type="text"
+                    name="new_route_name"
+                    class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-[#2a362f] bg-slate-50 dark:bg-[#151d19] text-slate-900 dark:text-white font-medium form-input"
+                    placeholder="Rotaya bir isim ver"
+                  />
+                </div>
+                <div>
+                  <label
+                    class="block text-sm font-bold text-slate-900 dark:text-white mb-2"
+                    >Zorluk (Otomatik)</label
+                  >
+                  <div class="relative">
                     <select
                       name="difficulty"
                       id="event_difficulty"
-                      class="form-select"
-                      style="pointer-events: none; background-color: #e9ecef"
-                      tabindex="-1"
+                      class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-[#2a362f] bg-slate-100 dark:bg-slate-800 text-slate-500 pointer-events-none appearance-none font-medium"
                     >
                       <option value="Easy">Kolay 🟢 (0-5 km)</option>
                       <option value="Medium">Orta 🟡 (5-15 km)</option>
                       <option value="Hard">Zor 🔴 (15+ km)</option>
                     </select>
-                  </div>
-                </div>
-
-                <div class="row mb-3">
-                  <div class="col-md-6">
-                    <label class="form-label text-muted small"
-                      >Mesafe (km)</label
+                    <span
+                      class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
+                      >lock</span
                     >
-                    <input
-                      type="text"
-                      name="distance"
-                      id="event_distance"
-                      class="form-control bg-light"
-                      readonly
-                    />
                   </div>
-                  <div class="col-md-6">
-                    <label class="form-label text-muted small"
-                      >Tahmini Süre (dk)</label
-                    >
-                    <input
-                      type="text"
-                      name="duration"
-                      id="event_duration"
-                      class="form-control bg-light"
-                      readonly
-                    />
-                  </div>
-                </div>
-
-                <div
-                  id="eventMap"
-                  style="height: 400px; width: 100%; border-radius: 10px"
-                  class="mb-2 border"
-                ></div>
-                <div class="d-flex justify-content-between mb-3">
-                  <small class="text-muted"
-                    ><i class="fas fa-info-circle"></i> Haritaya tıklayarak
-                    durak ekleyin.</small
-                  >
-                  <div>
-                    <button
-                      type="button"
-                      class="btn btn-sm btn-outline-danger"
-                      onclick="undoLastStop(eventControl)"
-                    >
-                      ↩️ Geri Al
-                    </button>
-                    <button
-                      type="button"
-                      class="btn btn-sm btn-outline-secondary"
-                      onclick="clearAllStops(eventControl)"
-                    >
-                      🗑️ Temizle
-                    </button>
-                  </div>
-                </div>
-
-                <input type="hidden" name="stops_json" id="event_stops_json" />
-              </div>
-
-              <button
-                type="submit"
-                class="btn btn-success w-100 py-3 mt-4 fw-bold shadow-sm rounded-pill"
-              >
-                <i class="fas fa-check-circle"></i> Etkinliği Oluştur
-              </button>
-            </form>
-          </div>
-
-          <div class="tab-pane fade" id="routePanel">
-            <div class="alert alert-info">
-              <i class="fas fa-info-circle"></i> Buradan oluşturduğunuz rotalar
-              kütüphaneye kaydedilir.
-            </div>
-            <form method="POST" action="/create">
-              <input type="hidden" name="form_type" value="route_only" />
-
-              <div class="row mb-3">
-                <div class="col-md-6">
-                  <label class="form-label fw-bold">Rota Adı</label>
-                  <input
-                    type="text"
-                    name="route_name"
-                    class="form-control bg-light"
-                    required
-                  />
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-bold">Zorluk (Otomatik)</label>
-                  <select
-                    name="difficulty"
-                    id="route_difficulty"
-                    class="form-select"
-                    style="pointer-events: none; background-color: #e9ecef"
-                    tabindex="-1"
-                  >
-                    <option value="Easy">Kolay 🟢</option>
-                    <option value="Medium">Orta 🟡</option>
-                    <option value="Hard">Zor 🔴</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="row mb-3">
-                <div class="col-md-6">
-                  <label class="form-label text-muted small">Mesafe (km)</label>
-                  <input
-                    type="text"
-                    name="distance"
-                    id="route_distance"
-                    class="form-control bg-light"
-                    readonly
-                  />
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label text-muted small"
-                    >Tahmini Süre (dk)</label
-                  >
-                  <input
-                    type="text"
-                    name="duration"
-                    id="route_duration"
-                    class="form-control bg-light"
-                    readonly
-                  />
                 </div>
               </div>
 
               <div
-                id="routeOnlyMap"
-                style="height: 400px; width: 100%; border-radius: 10px"
-                class="mb-2 border"
-              ></div>
-              <div class="d-flex justify-content-between mb-3">
-                <small class="text-muted"
-                  ><i class="fas fa-info-circle"></i> Haritaya tıklayarak durak
-                  ekleyin.</small
-                >
+                class="grid grid-cols-2 gap-4 p-4 bg-slate-50 dark:bg-[#151d19] rounded-xl border border-slate-200 dark:border-[#2a362f]"
+              >
                 <div>
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-danger"
-                    onclick="undoLastStop(routeControl)"
+                  <label
+                    class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 block"
+                    >Mesafe</label
                   >
-                    ↩️ Geri Al
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-secondary"
-                    onclick="clearAllStops(routeControl)"
+                  <input
+                    type="text"
+                    name="distance"
+                    id="event_distance"
+                    class="w-full bg-transparent border-none p-0 text-xl font-black text-slate-900 dark:text-white focus:ring-0"
+                    readonly
+                    placeholder="0.0"
+                  />
+                  <span class="text-xs font-bold text-slate-500">km</span>
+                </div>
+                <div
+                  class="border-l border-slate-200 dark:border-[#2a362f] pl-4"
+                >
+                  <label
+                    class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 block"
+                    >Süre</label
                   >
-                    🗑️ Temizle
-                  </button>
+                  <input
+                    type="text"
+                    name="duration"
+                    id="event_duration"
+                    class="w-full bg-transparent border-none p-0 text-xl font-black text-slate-900 dark:text-white focus:ring-0"
+                    readonly
+                    placeholder="0"
+                  />
+                  <span class="text-xs font-bold text-slate-500">dk</span>
                 </div>
               </div>
 
-              <input type="hidden" name="stops_json" id="route_stops_json" />
-
-              <button
-                type="submit"
-                class="btn btn-primary w-100 py-3 mt-3 fw-bold rounded-pill"
+              <div
+                class="relative w-full h-[400px] bg-slate-100 dark:bg-[#151d19] rounded-2xl overflow-hidden border border-slate-200 dark:border-[#2a362f] group"
               >
-                <i class="fas fa-save"></i> Rotayı Kaydet
-              </button>
-            </form>
+                <div id="eventMap" class="absolute inset-0 z-0"></div>
+                <div class="absolute top-4 right-4 z-[400] flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onclick="undoLastStop(eventMapData)"
+                    class="size-10 bg-white dark:bg-slate-800 rounded-lg shadow-md text-slate-600 dark:text-slate-200 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                    title="Geri Al"
+                  >
+                    <span class="material-symbols-outlined">undo</span>
+                  </button>
+                  <button
+                    type="button"
+                    onclick="clearAllStops(eventMapData)"
+                    class="size-10 bg-white dark:bg-slate-800 rounded-lg shadow-md text-red-500 flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    title="Temizle"
+                  >
+                    <span class="material-symbols-outlined">delete</span>
+                  </button>
+                </div>
+                <div
+                  class="absolute bottom-4 left-4 right-4 z-[400] pointer-events-none"
+                >
+                  <div
+                    class="bg-white/90 dark:bg-slate-900/90 backdrop-blur px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 shadow-lg text-center border border-white/20"
+                  >
+                    📍 Haritaya tıklayarak durak ekleyin. Markera tıklayarak
+                    ismini değiştirin.
+                  </div>
+                </div>
+              </div>
+              <input type="hidden" name="stops_json" id="event_stops_json" />
+            </div>
           </div>
+
+          <button
+            type="submit"
+            class="w-full py-4 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold text-lg shadow-lg shadow-primary/25 hover:shadow-primary/40 active:scale-95 transition-all flex items-center justify-center gap-2"
+          >
+            <span class="material-symbols-outlined">check_circle</span>
+            Etkinliği Yayınla
+          </button>
+        </form>
+      </div>
+
+      <div id="panel-route" class="hidden animate-fade-in">
+        <div
+          class="mb-6 p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-xl flex gap-3 items-start"
+        >
+          <span
+            class="material-symbols-outlined text-blue-600 dark:text-blue-400"
+            >info</span
+          >
+          <p
+            class="text-sm text-blue-800 dark:text-blue-200 font-medium leading-relaxed"
+          >
+            Buradan oluşturduğunuz rotalar herkese açık olarak kaydedilir.
+          </p>
         </div>
+
+        <form
+          method="POST"
+          action="/create"
+          onsubmit="return prepareFormData('route')"
+        >
+          <input type="hidden" name="form_type" value="route_only" />
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <label
+                class="block text-sm font-bold text-slate-900 dark:text-white mb-2"
+                >Rota Adı</label
+              >
+              <input
+                type="text"
+                name="route_name"
+                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-[#2a362f] bg-slate-50 dark:bg-[#151d19] text-slate-900 dark:text-white font-medium form-input"
+                required
+                placeholder="Rota İsmi"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-sm font-bold text-slate-900 dark:text-white mb-2"
+                >Zorluk</label
+              >
+              <div class="relative">
+                <select
+                  name="difficulty"
+                  id="route_difficulty"
+                  class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-[#2a362f] bg-slate-100 dark:bg-slate-800 text-slate-500 pointer-events-none appearance-none font-medium"
+                >
+                  <option value="Easy">Kolay 🟢</option>
+                  <option value="Medium">Orta 🟡</option>
+                  <option value="Hard">Zor 🔴</option>
+                </select>
+                <span
+                  class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
+                  >lock</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="grid grid-cols-2 gap-4 p-4 bg-slate-50 dark:bg-[#151d19] rounded-xl border border-slate-200 dark:border-[#2a362f] mb-6"
+          >
+            <div>
+              <label
+                class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 block"
+                >Mesafe</label
+              >
+              <input
+                type="text"
+                name="distance"
+                id="route_distance"
+                class="w-full bg-transparent border-none p-0 text-xl font-black text-slate-900 dark:text-white focus:ring-0"
+                readonly
+                placeholder="0.0"
+              />
+              <span class="text-xs font-bold text-slate-500">km</span>
+            </div>
+            <div class="border-l border-slate-200 dark:border-[#2a362f] pl-4">
+              <label
+                class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 block"
+                >Süre</label
+              >
+              <input
+                type="text"
+                name="duration"
+                id="route_duration"
+                class="w-full bg-transparent border-none p-0 text-xl font-black text-slate-900 dark:text-white focus:ring-0"
+                readonly
+                placeholder="0"
+              />
+              <span class="text-xs font-bold text-slate-500">dk</span>
+            </div>
+          </div>
+
+          <div
+            class="relative w-full h-[400px] bg-slate-100 dark:bg-[#151d19] rounded-2xl overflow-hidden border border-slate-200 dark:border-[#2a362f] group mb-6"
+          >
+            <div id="routeOnlyMap" class="absolute inset-0 z-0"></div>
+            <div class="absolute top-4 right-4 z-[400] flex flex-col gap-2">
+              <button
+                type="button"
+                onclick="undoLastStop(routeMapData)"
+                class="size-10 bg-white dark:bg-slate-800 rounded-lg shadow-md text-slate-600 dark:text-slate-200 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+              >
+                <span class="material-symbols-outlined">undo</span>
+              </button>
+              <button
+                type="button"
+                onclick="clearAllStops(routeMapData)"
+                class="size-10 bg-white dark:bg-slate-800 rounded-lg shadow-md text-red-500 flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+              >
+                <span class="material-symbols-outlined">delete</span>
+              </button>
+            </div>
+          </div>
+          <input type="hidden" name="stops_json" id="route_stops_json" />
+
+          <button
+            type="submit"
+            class="w-full py-4 bg-slate-800 dark:bg-white dark:text-slate-900 hover:bg-slate-900 dark:hover:bg-slate-200 text-white rounded-xl font-bold text-lg shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
+          >
+            <span class="material-symbols-outlined">save</span> Rotayı Kaydet
+          </button>
+        </form>
       </div>
     </div>
   </div>
@@ -354,141 +635,276 @@
 <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
 <script>
-  function toggleRouteMode() {
-    var mode = document.querySelector(
-      'input[name="route_selection_mode"]:checked'
-    ).value;
-    if (mode === "existing") {
-      document.getElementById("existingRouteDiv").style.display = "block";
-      document.getElementById("newRouteDiv").style.display = "none";
-    } else {
-      document.getElementById("existingRouteDiv").style.display = "none";
-      document.getElementById("newRouteDiv").style.display = "block";
-      setTimeout(function () {
-        if (eventMap) eventMap.invalidateSize();
-      }, 200);
+  // --- İKON OLUŞTURUCU (Görsel İyileştirme) ---
+  function createIcon(type, number) {
+    let bgClass = "marker-pin";
+    let innerContent = number;
+    let customClass = "";
+
+    if (type === "start") {
+      customClass = "marker-start";
+      innerContent =
+        '<span class="material-symbols-outlined" style="font-size:18px; color: white;">flag</span>';
+    } else if (type === "end") {
+      customClass = "marker-end";
+      innerContent =
+        '<span class="material-symbols-outlined" style="font-size:18px; color: white;">sports_score</span>';
     }
+
+    return L.divIcon({
+      className: "custom-div-icon " + customClass,
+      html: `<div class='marker-pin'></div><div class='marker-pin-inner'>${innerContent}</div>`,
+      iconSize: [36, 36], // Boyut büyütüldü
+      iconAnchor: [18, 36],
+      popupAnchor: [0, -30],
+    });
   }
 
-  // --- HARİTA VE OTOMATİK HESAPLAMA ---
-  // Kontrolcüleri (Control) dışarıda tutuyoruz ki butonlarla erişebilelim
-  var eventControl = null;
-  var routeControl = null;
-
-  function initMap(mapId, stopsInputId, distInputId, durInputId, diffSelectId) {
+  // --- HARİTA MANTIĞI ---
+  function initMap(mapId, distInputId, durInputId, diffSelectId) {
     var map = L.map(mapId).setView([41.0082, 28.9784], 11);
-
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "OpenStreetMap",
     }).addTo(map);
 
     var routingControl = L.Routing.control({
       waypoints: [],
-      routeWhileDragging: true,
+      routeWhileDragging: false,
       geocoder: null,
-      createMarker: function (i, wp, nWps) {
-        return L.marker(wp.latLng, { draggable: true });
+      lineOptions: { styles: [{ color: "#3b82f6", opacity: 0.8, weight: 6 }] },
+      createMarker: function (i, wp, n) {
+        let type = "mid";
+        if (i === 0) type = "start";
+        else if (i === n - 1) type = "end";
+
+        let marker = L.marker(wp.latLng, {
+          draggable: true,
+          icon: createIcon(type, i), // Sadece sayıyı gönderiyoruz
+        });
+
+        // POPUP AYARLARI
+        let currentName =
+          wp.name ||
+          (i === 0 ? "Başlangıç" : i === n - 1 ? "Bitiş" : "Durak " + i);
+        let container = document.createElement("div");
+        container.innerHTML = `
+            <div class="p-2 min-w-[200px]">
+                <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Durak İsmi</label>
+                <input type="text" value="${currentName}" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all mb-3 text-slate-800 font-medium" id="stop-name-${i}">
+                <button type="button" onclick="saveStopName(${i}, '${mapId}')" class="w-full bg-primary hover:bg-primary-hover text-white text-sm py-2 rounded-lg font-bold transition-colors shadow-sm">Kaydet</button>
+            </div>
+          `;
+        marker.bindPopup(container);
+        return marker;
       },
     }).addTo(map);
 
-    // Rota bulunduğunda çalışır
     routingControl.on("routesfound", function (e) {
-      var routes = e.routes;
-      var summary = routes[0].summary;
+      var summary = e.routes[0].summary;
+      document.getElementById(distInputId).value = (
+        summary.totalDistance / 1000
+      ).toFixed(1);
+      document.getElementById(durInputId).value = Math.round(
+        summary.totalTime / 60
+      );
 
-      // 1. JSON Durakları
-      var userWaypoints = routingControl.getWaypoints();
-      var simpleStops = [];
-      userWaypoints.forEach(function (wp) {
-        if (wp.latLng) {
-          simpleStops.push({ lat: wp.latLng.lat, lng: wp.latLng.lng });
-        }
-      });
-      document.getElementById(stopsInputId).value = JSON.stringify(simpleStops);
-
-      // 2. Mesafe Hesapla
-      var km = (summary.totalDistance / 1000).toFixed(1);
-      document.getElementById(distInputId).value = km;
-
-      // 3. Süre Hesapla
-      var mins = Math.round(summary.totalTime / 60);
-      document.getElementById(durInputId).value = mins;
-
-      // 4. OTOMATİK ZORLUK SEÇİMİ
       var diffSelect = document.getElementById(diffSelectId);
       if (diffSelect) {
+        var km = summary.totalDistance / 1000;
         if (km < 5) diffSelect.value = "Easy";
         else if (km < 15) diffSelect.value = "Medium";
         else diffSelect.value = "Hard";
       }
     });
 
-    // Haritaya tıklayınca nokta ekle
     map.on("click", function (e) {
-      var currentWaypoints = routingControl.getWaypoints();
-      // Boş (null) noktaları temizle
-      currentWaypoints = currentWaypoints.filter((wp) => wp.latLng);
-
-      currentWaypoints.push(L.latLng(e.latlng.lat, e.latlng.lng));
-      routingControl.setWaypoints(currentWaypoints);
+      var wps = routingControl.getWaypoints().filter((wp) => wp.latLng);
+      wps.push(L.Routing.waypoint(e.latlng));
+      routingControl.setWaypoints(wps);
     });
 
-    // Haritayı da döndürelim ama asıl önemli olan routingControl
     return { map: map, control: routingControl };
   }
 
-  // --- BUTON FONKSİYONLARI ---
-  function undoLastStop(control) {
-    if (!control) return;
-    var waypoints = control.getWaypoints();
-    // Null olmayan noktaları al
-    waypoints = waypoints.filter((wp) => wp.latLng);
+  // --- KAYDETME VE FORM HAZIRLAMA ---
+  window.saveStopName = function (index, mapId) {
+    let control =
+      mapId === "eventMap" ? eventMapData.control : routeMapData.control;
+    let input = document.getElementById(`stop-name-${index}`);
+    if (input && control) {
+      let wps = control.getWaypoints();
+      wps[index].name = input.value;
+      control.setWaypoints(wps);
+      let map = mapId === "eventMap" ? eventMapData.map : routeMapData.map;
+      map.closePopup();
+    }
+  };
 
-    if (waypoints.length > 0) {
-      waypoints.pop(); // Sonuncuyu sil
-      control.setWaypoints(waypoints);
+  function prepareFormData(type) {
+    let control =
+      type === "event" ? eventMapData.control : routeMapData.control;
+    let inputId = type === "event" ? "event_stops_json" : "route_stops_json";
+
+    let wps = control.getWaypoints().filter((wp) => wp.latLng);
+    let data = wps.map((wp, i) => ({
+      lat: wp.latLng.lat,
+      lng: wp.latLng.lng,
+      name:
+        wp.name ||
+        (i === 0 ? "Başlangıç" : i === wps.length - 1 ? "Bitiş" : "Durak " + i),
+    }));
+
+    document.getElementById(inputId).value = JSON.stringify(data);
+    return true;
+  }
+
+  // Helper Fonksiyonlar
+  function undoLastStop(data) {
+    if (!data.control) return;
+    var wps = data.control.getWaypoints().filter((wp) => wp.latLng);
+    if (wps.length > 0) {
+      wps.pop();
+      data.control.setWaypoints(wps);
     }
   }
-
-  function clearAllStops(control) {
-    if (!control) return;
-    control.setWaypoints([]); // Hepsini sil
-    // Inputları da temizle (Opsiyonel ama şık olur)
-    // Burada basitçe sıfırlıyoruz, rota kaybolunca inputlar güncellenmeyebilir
-    // O yüzden routingControl events'i tetiklenmezse manuel temizlemek gerekebilir
+  function clearAllStops(data) {
+    if (!data.control) return;
+    data.control.setWaypoints([]);
   }
 
-  // Haritaları Başlat
+  // --- BAŞLATMA ---
   var eventMapData = initMap(
     "eventMap",
-    "event_stops_json",
     "event_distance",
     "event_duration",
     "event_difficulty"
   );
-  var eventMap = eventMapData.map;
-  eventControl = eventMapData.control;
-
   var routeMapData = initMap(
     "routeOnlyMap",
-    "route_stops_json",
     "route_distance",
     "route_duration",
     "route_difficulty"
   );
-  var routeOnlyMap = routeMapData.map;
-  routeControl = routeMapData.control;
 
-  // Tab geçiş düzeltmesi
-  var triggerTabList = [].slice.call(
-    document.querySelectorAll("#createTabs button")
-  );
-  triggerTabList.forEach(function (triggerEl) {
-    triggerEl.addEventListener("shown.bs.tab", function (event) {
-      if (event.target.id === "route-tab") {
-        routeOnlyMap.invalidateSize();
-      }
-    });
+  // --- TAB VE ARAMA FONKSİYONLARI ---
+  function switchCreateTab(tabName) {
+    document.getElementById("panel-event").classList.add("hidden");
+    document.getElementById("panel-route").classList.add("hidden");
+    document.getElementById("panel-" + tabName).classList.remove("hidden");
+
+    const btnEvent = document.getElementById("btn-tab-event");
+    const btnRoute = document.getElementById("btn-tab-route");
+    const activeClasses = [
+      "bg-white",
+      "dark:bg-slate-700",
+      "text-primary",
+      "dark:text-white",
+      "shadow-sm",
+    ];
+    const inactiveClasses = [
+      "text-slate-500",
+      "dark:text-slate-400",
+      "hover:text-slate-700",
+      "dark:hover:text-slate-200",
+    ];
+    btnEvent.classList.remove(...activeClasses, ...inactiveClasses);
+    btnRoute.classList.remove(...activeClasses, ...inactiveClasses);
+
+    if (tabName === "event") {
+      btnEvent.classList.add(...activeClasses);
+      btnRoute.classList.add(...inactiveClasses);
+    } else {
+      btnRoute.classList.add(...activeClasses);
+      btnEvent.classList.add(...inactiveClasses);
+      setTimeout(() => {
+        if (routeMapData.map) routeMapData.map.invalidateSize();
+      }, 200);
+    }
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("type") === "route") switchCreateTab("route");
+    else switchCreateTab("event");
   });
+
+  function toggleRouteMode() {
+    var mode = document.querySelector(
+      'input[name="route_selection_mode"]:checked'
+    ).value;
+    if (mode === "existing") {
+      document.getElementById("existingRouteDiv").classList.remove("hidden");
+      document.getElementById("newRouteDiv").classList.add("hidden");
+    } else {
+      document.getElementById("existingRouteDiv").classList.add("hidden");
+      document.getElementById("newRouteDiv").classList.remove("hidden");
+      setTimeout(function () {
+        if (eventMapData.map) eventMapData.map.invalidateSize();
+      }, 200);
+    }
+  }
+
+  function filterRoutes() {
+    const input = document.getElementById("routeSearchInput");
+    const filter = input.value.toLowerCase();
+    const list = document.getElementById("routeListContainer");
+    const items = list.getElementsByClassName("route-option");
+    let visibleCount = 0;
+    for (let i = 0; i < items.length; i++) {
+      const txtValue = items[i].getAttribute("data-name");
+      if (txtValue.indexOf(filter) > -1) {
+        items[i].style.display = "";
+        visibleCount++;
+      } else {
+        items[i].style.display = "none";
+      }
+    }
+    document
+      .getElementById("noRouteMsg")
+      .classList.toggle("hidden", visibleCount > 0);
+  }
+
+  function selectRoute(id, element) {
+    document.getElementById("selectedRouteId").value = id;
+    const allOptions = document.querySelectorAll(".route-option");
+    allOptions.forEach((opt) => {
+      opt
+        .querySelector(".selection-indicator")
+        .classList.remove("border-primary");
+      opt
+        .querySelector(".selection-indicator")
+        .classList.add("border-slate-300", "dark:border-slate-600");
+      opt
+        .querySelector(".indicator-dot")
+        .classList.remove("opacity-100", "scale-100");
+      opt.querySelector(".indicator-dot").classList.add("opacity-0", "scale-0");
+      opt
+        .querySelector(".selection-border")
+        .classList.remove("opacity-100", "scale-100");
+      opt
+        .querySelector(".selection-border")
+        .classList.add("opacity-0", "scale-95");
+      opt.classList.remove("bg-green-50", "dark:bg-green-900/10");
+    });
+    element
+      .querySelector(".selection-indicator")
+      .classList.remove("border-slate-300", "dark:border-slate-600");
+    element
+      .querySelector(".selection-indicator")
+      .classList.add("border-primary");
+    element
+      .querySelector(".indicator-dot")
+      .classList.remove("opacity-0", "scale-0");
+    element
+      .querySelector(".indicator-dot")
+      .classList.add("opacity-100", "scale-100");
+    element
+      .querySelector(".selection-border")
+      .classList.remove("opacity-0", "scale-95");
+    element
+      .querySelector(".selection-border")
+      .classList.add("opacity-100", "scale-100");
+    element.classList.add("bg-green-50", "dark:bg-green-900/10");
+  }
 </script>
 {% endblock %}
