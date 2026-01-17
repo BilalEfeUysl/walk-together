@@ -56,9 +56,6 @@ def admin_required(f):
         # Admin değilse anasayfaya at
         if 'user_id' not in session or session.get('role') != 'admin':
             flash("Bu sayfaya erişim yetkiniz yok!", "danger")
-            # 'main.index' -> main blueprint'i oluşturunca çalışacak
-            # Şimdilik hata vermemesi için 'index' diyebiliriz ama doğrusu blueprint adıyla çağırmaktır.
-            # Biz standart olarak 'main.index' kullanımına hazırlık yapıyoruz.
             return redirect(url_for('main.index')) 
         return f(*args, **kwargs)
     return decorated_function

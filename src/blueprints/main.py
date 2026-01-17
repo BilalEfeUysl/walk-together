@@ -63,16 +63,16 @@ def profile(user_id):
         user_level = "Belirsiz"
         user_rank_color = "bg-gray-100 text-gray-600 border-gray-200" 
         try:
-            cur.execute("""
-                SELECT name, color_class FROM ranks 
-                WHERE min_points <= %s 
-                ORDER BY min_points DESC LIMIT 1
-            """, (user[4],)) 
-            rank_data = cur.fetchone()
-            if rank_data:
-                user_level = rank_data[0]
-                user_rank_color = rank_data[1]
-        except: pass
+            cur.execute("SELECT calculate_user_level(%s)", (user[4],))
+            user_level_from_func = cur.fetchone()[0]
+            user_level = user_level_from_func
+
+            cur.execute("SELECT color_class FROM ranks WHERE name = %s", (user_level,))
+            color_res = cur.fetchone()
+            if color_res:
+                user_rank_color = color_res[0]
+        except Exception as e: 
+            current_app.logger.error(f"Seviye Hesaplama Hatası: {e}")
 
         # 2. Rozetler
         cur.execute("SELECT b.badge_name, b.icon_url, b.description FROM user_badges ub JOIN badges b ON ub.badge_id = b.badge_id WHERE ub.user_id = %s", (user_id,))
@@ -222,13 +222,15 @@ def routes():
             sql += " AND route_name ILIKE %s"
             params.append(f"%{search_query}%")
         
-        # 2. Mesafe Filtresi
-        if min_dist:
-            sql += " AND distance_km >= %s"
-            params.append(float(min_dist))
-        if max_dist:
-            sql += " AND distance_km <= %s"
-            params.append(float(max_dist))
+        # 2. Mesafe Filtresi (SQL Fonksiyonu Kullanımı: search_routes_by_distance)
+        if min_dist or max_dist:
+            # Fonksiyon kullanımı zorunluluğu için mesafe filtresini fonksiyon üzerinden yapıyoruz
+            low = float(min_dist) if min_dist else 0
+            high = float(max_dist) if max_dist else 100000
+            
+            # Fonksiyondan dönen ID'leri alıp ana sorguya ekliyoruz
+            # "Arayüzden girilen değerleri parametre olarak alıp..." kuralı için.
+            sql += f" AND route_id IN (SELECT r_id FROM search_routes_by_distance({low}, {high}))"
             
         # 3. Zorluk Filtresi
         if difficulty:
@@ -299,8 +301,7 @@ def route_detail(route_id):
         
         if not route: return "Rota bulunamadı", 404
         
-        # --- [GET] Duraklar (Senin Cursor Fonksiyonun) ---
-        # Hoca isteği olan cursor fonksiyonunu koruduk
+        # --- [GET] Duraklar (Cursor Fonksiyonu) ---
         cur.execute("SELECT * FROM get_stops_via_cursor(%s)", (route_id,))
         stops = cur.fetchall()
         
@@ -958,10 +959,10 @@ def inject_notifications():
 
     return dict(notifications=notifications, unread_count=unread_count)
 
-@main_bp.route('/debug/participants/<int:event_id>')
-def debug_cursor_function(event_id):
+@main_bp.route('/debug/cursor/<int:route_id>')
+def debug_cursor_function(route_id):
     with get_db() as conn:
         cur = conn.cursor()
-        cur.execute("SELECT get_event_participants_cursor(%s)", (event_id,))
-        result = cur.fetchone()[0]
-    return f"Cursor Fonksiyonu Çıktısı: {result}"
+        cur.execute("SELECT * FROM get_stops_via_cursor(%s)", (route_id,))
+        result = cur.fetchall()
+    return f"Cursor Fonksiyonu Çıktısı (Duraklar): {result}"

@@ -1,0 +1,528 @@
+/* =========================================
+   DARK FOREST & NEON GLASS THEME 🌲✨
+   ========================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+
+:root {
+    --bg-dark: #051814;          /* Çok koyu orman yeşili (Arkaplan) */
+    --glass-bg: rgba(255, 255, 255, 0.05); /* Kartlar için şeffaf beyaz */
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --neon-green: #00ff9d;       /* Vurgu Rengi (Butonlar, Linkler) */
+    --neon-glow: 0 0 10px rgba(0, 255, 157, 0.4);
+    --text-main: #e0e0e0;        /* Kırık beyaz metin */
+    --text-muted: #a0a0a0;
+}
+
+body {
+    font-family: 'Outfit', sans-serif;
+    background-color: var(--bg-dark);
+    /* Arka plana loş, gizemli bir orman görseli ekliyoruz */
+    background-image: linear-gradient(rgba(5, 24, 20, 0.85), rgba(5, 24, 20, 0.95)), 
+                      url('https://images.unsplash.com/photo-1511497584788-876760111969?q=80&w=1920&auto=format&fit=crop');
+    background-size: cover;
+    background-attachment: fixed;
+    background-position: center;
+    color: var(--text-main);
+    min-height: 100vh;
+}
+
+/* --- GLASSMORPHISM (BUZLU CAM) SINIFLARI --- */
+.glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px); /* Arkadaki görseli bulanıklaştırır */
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+.card {
+    background: var(--glass-bg) !important; /* Bootstrap'i eziyoruz */
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    color: var(--text-main);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 40px rgba(0, 255, 157, 0.1); /* Hafif yeşil parama */
+    border-color: rgba(0, 255, 157, 0.3);
+}
+
+/* --- NAVBAR --- */
+.navbar {
+    background: rgba(5, 24, 20, 0.8) !important;
+    backdrop-filter: blur(15px);
+    border-bottom: 1px solid var(--glass-border);
+    padding: 1rem 0;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    color: var(--neon-green) !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: var(--neon-glow);
+}
+
+.nav-link {
+    color: var(--text-main) !important;
+    font-weight: 500;
+    transition: 0.3s;
+}
+
+.nav-link:hover {
+    color: var(--neon-green) !important;
+    text-shadow: var(--neon-glow);
+}
+
+/* --- BUTONLAR (NEON STYLE) --- */
+.btn-primary {
+    background-color: transparent;
+    border: 2px solid var(--neon-green);
+    color: var(--neon-green);
+    font-weight: 600;
+    border-radius: 50px;
+    padding: 10px 25px;
+    transition: all 0.3s ease;
+    box-shadow: var(--neon-glow);
+}
+
+.btn-primary:hover {
+    background-color: var(--neon-green);
+    color: var(--bg-dark);
+    box-shadow: 0 0 20px rgba(0, 255, 157, 0.6);
+    border-color: var(--neon-green);
+}
+
+.btn-outline-light {
+    border-radius: 50px;
+}
+
+/* --- FORM GİRDİLERİ --- */
+.form-control, .form-select {
+    background: rgba(0, 0, 0, 0.2) !important;
+    border: 1px solid var(--glass-border);
+    color: white !important;
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.form-control:focus {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border-color: var(--neon-green);
+    box-shadow: var(--neon-glow);
+}
+
+/* Tablolar ve Listeler */
+.list-group-item {
+    background: transparent;
+    color: var(--text-main);
+    border-color: var(--glass-border);
+}
+.text-muted {
+    color: #a0a0a0 !important;
+}
+
+/* Başlıklar */
+h1, h2, h3, h4, h5, h6 {
+    color: white;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+/* =========================================
+   UIVERSE ÖZEL BİLEŞENLERİ (GÜNCELLENDİ)
+   ========================================= */
+
+/* --- 1. NEON INPUT (Giriş Kutuları) --- */
+.input-neon {
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 12px 25px;
+    background: rgba(0,0,0,0.3);
+    width: 100%;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.input-neon:focus {
+    border-color: #00ff9d; /* Yeşil Çerçeve */
+    box-shadow: 0 0 15px rgba(0, 255, 157, 0.3) inset;
+    background: rgba(0,0,0,0.6);
+}
+
+/* --- 2. YILDIZLI BUTON (Register/Login Butonu) --- */
+/* Rengi Turuncu'dan Yeşile çevirdim */
+.btn-star {
+  position: relative;
+  padding: 12px 35px;
+  background: transparent;
+  font-size: 17px;
+  font-weight: 600;
+  color: #00ff9d; /* Yeşil Yazı */
+  border: 2px solid #00ff9d; /* Yeşil Çerçeve */
+  border-radius: 50px; /* Yuvarlak hatlar */
+  box-shadow: 0 0 10px rgba(0, 255, 157, 0.2);
+  transition: all 0.3s ease-in-out;
+  cursor: pointer;
+  overflow: hidden;
+  width: 100%; /* Formda tam genişlik */
+}
+
+.btn-star:hover {
+  background: #00ff9d;
+  color: #051814; /* Koyu arka plan */
+  box-shadow: 0 0 25px rgba(0, 255, 157, 0.6);
+}
+
+/* Yıldız Animasyonları (Renkler Beyaz/Sarı yerine Açık Yeşil) */
+.star-1, .star-2, .star-3, .star-4, .star-5, .star-6 {
+  position: absolute;
+  fill: #fff; 
+  z-index: -1;
+  transition: all 1s ease;
+  opacity: 0; /* Normalde gizli */
+}
+
+.btn-star:hover .star-1 { top: -20%; left: -20%; opacity: 1; width: 20px;}
+.btn-star:hover .star-2 { top: 10%; left: 110%; opacity: 1; width: 15px;}
+.btn-star:hover .star-3 { bottom: -20%; left: 20%; opacity: 1; width: 10px;}
+.btn-star:hover .star-4 { top: -10%; right: 40%; opacity: 1; width: 12px;}
+.btn-star:hover .star-5 { bottom: 50%; right: -20%; opacity: 1; width: 15px;}
+
+/* --- 3. CYBER CARD (Anasayfa Kartları) --- */
+.cyber-card-container {
+  width: 100%;
+  height: 300px;
+  position: relative;
+  perspective: 1000px;
+}
+
+.cyber-card {
+  width: 100%;
+  height: 100%;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.5s ease;
+  backdrop-filter: blur(10px);
+}
+
+.cyber-card:hover {
+  transform: translateY(-10px);
+  border-color: #00ff9d;
+  box-shadow: 0 10px 30px rgba(0, 255, 157, 0.15);
+}
+
+.cyber-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-align: center;
+  background: linear-gradient(45deg, #fff, #00ff9d);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  z-index: 10;
+}
+
+.cyber-subtitle {
+  color: rgba(255,255,255,0.6);
+  text-align: center;
+  margin-top: 10px;
+  z-index: 10;
+}
+
+/* Kartın içindeki parlayan çizgiler */
+.cyber-line {
+  position: absolute;
+  background: #00ff9d;
+  opacity: 0.3;
+}
+.cyber-line.top { top: 0; left: 0; width: 100%; height: 2px; }
+.cyber-line.bottom { bottom: 0; right: 0; width: 100%; height: 2px; }
+
+
+/* =========================================
+   UIVERSE ENTEGRASYONLARI (GÜNCEL) 🌲
+   ========================================= */
+
+/* --- 1. SPACE BUTTON (Anasayfa İçin) --- */
+/* From Uiverse.io by StealthWorm - Adapted for WalkTogether */
+.btn-space-neon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 14rem;
+  overflow: hidden;
+  height: 3.5rem;
+  background-size: 300% 300%;
+  cursor: pointer;
+  backdrop-filter: blur(1rem);
+  border-radius: 5rem;
+  transition: 0.5s;
+  animation: gradient_301 5s ease infinite;
+  border: double 4px transparent;
+  background-image: linear-gradient(#051814, #051814), /* Bizim bg-dark rengimiz */
+    linear-gradient(
+      137.48deg,
+      #00ff9d 10%,   /* Neon Yeşil */
+      #0dcaf0 45%,   /* Cyan */
+      #198754 67%,   /* Dark Green */
+      #00ff9d 87%    /* Neon Yeşil */
+    );
+  background-origin: border-box;
+  background-clip: content-box, border-box;
+  text-decoration: none !important; /* Link alt çizgisini kaldır */
+  position: relative;
+  z-index: 10;
+}
+
+.btn-space-neon #container-stars {
+  position: absolute;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  transition: 0.5s;
+  backdrop-filter: blur(1rem);
+  border-radius: 5rem;
+}
+
+.btn-space-neon strong {
+  z-index: 2;
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px;
+  letter-spacing: 2px;
+  color: #ffffff;
+  text-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
+  text-transform: uppercase;
+}
+
+.btn-space-neon #glow {
+  position: absolute;
+  display: flex;
+  width: 12rem;
+}
+
+.btn-space-neon .circle {
+  width: 100%;
+  height: 30px;
+  filter: blur(2rem);
+  animation: pulse_3011 4s infinite;
+  z-index: -1;
+}
+
+.btn-space-neon .circle:nth-of-type(1) {
+  background: rgba(0, 255, 157, 0.6); /* Yeşil Glow */
+}
+.btn-space-neon .circle:nth-of-type(2) {
+  background: rgba(13, 202, 240, 0.6); /* Mavi Glow */
+}
+
+.btn-space-neon:hover #container-stars {
+  z-index: 1;
+  background-color: #051814;
+}
+
+.btn-space-neon:hover {
+  transform: scale(1.05);
+}
+
+.btn-space-neon:active {
+  border: double 4px #00ff9d;
+  background-origin: border-box;
+  background-clip: content-box, border-box;
+  animation: none;
+}
+
+.btn-space-neon:active .circle {
+  background: #00ff9d;
+}
+
+#stars {
+  position: relative;
+  background: transparent;
+  width: 200rem;
+  height: 200rem;
+}
+
+#stars::after {
+  content: "";
+  position: absolute;
+  top: -10rem;
+  left: -100rem;
+  width: 100%;
+  height: 100%;
+  animation: animStarRotate 90s linear infinite;
+  background-image: radial-gradient(#ffffff 1px, transparent 1%);
+  background-size: 50px 50px;
+}
+
+#stars::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 170%;
+  height: 500%;
+  animation: animStar 60s linear infinite;
+  background-image: radial-gradient(#ffffff 1px, transparent 1%);
+  background-size: 50px 50px;
+  opacity: 0.5;
+}
+
+@keyframes animStar { from { transform: translateY(0); } to { transform: translateY(-135rem); } }
+@keyframes animStarRotate { from { transform: rotate(360deg); } to { transform: rotate(0); } }
+@keyframes gradient_301 { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+@keyframes pulse_3011 { 0% { transform: scale(0.75); box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 0, 0, 0); } 100% { transform: scale(0.75); box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); } }
+
+
+/* --- 2. GLOWING FLIP CARD (Liderlik Tablosu İçin) --- */
+/* From Uiverse.io by ElSombrero2 - Adapted for WalkTogether */
+.leader-card-wrapper {
+  overflow: visible;
+  width: 100%; /* Responsive olsun */
+  height: 280px;
+}
+
+.leader-content {
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 300ms;
+  box-shadow: 0px 0px 15px 1px rgba(0,0,0,0.5);
+  border-radius: 15px;
+}
+
+.leader-front, .leader-back {
+  background-color: rgba(21, 21, 21, 0.8); /* Yarı saydam */
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 15px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.leader-back {
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  transform: rotateY(180deg); /* Arka yüzü çevir */
+}
+
+.leader-back::before {
+  position: absolute;
+  content: ' ';
+  display: block;
+  width: 160px;
+  height: 160%;
+  /* Arkadaki dönen ışık efekti - Yeşil ve Mavi */
+  background: linear-gradient(90deg, transparent, #00ff9d, #0dcaf0, #00ff9d, transparent);
+  animation: rotation_481 5000ms infinite linear;
+}
+
+.leader-back-content {
+  position: absolute;
+  width: 98%;
+  height: 98%;
+  background-color: #051814; /* Koyu yeşil zemin */
+  border-radius: 15px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  z-index: 2;
+}
+
+.leader-card-wrapper:hover .leader-content {
+  transform: rotateY(180deg);
+}
+
+@keyframes rotation_481 { 0% { transform: rotateZ(0deg); } 100% { transform: rotateZ(360deg); } }
+
+.leader-front .leader-front-content {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 5;
+}
+
+.leader-front .img-bg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top:0; left:0;
+  overflow: hidden;
+}
+
+/* Parlayan Toplar (Blobs) */
+.blob-circle {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background-color: rgba(0, 255, 157, 0.6); /* Neon Yeşil */
+  position: relative;
+  filter: blur(25px);
+  animation: floating 2600ms infinite linear;
+}
+
+#blob-bottom {
+  background-color: rgba(13, 202, 240, 0.6); /* Mavi */
+  left: 50px; top: 50px;
+  width: 150px; height: 150px;
+  animation-delay: -800ms;
+}
+
+#blob-right {
+  background-color: rgba(25, 135, 84, 0.6); /* Koyu Yeşil */
+  left: 160px; top: -80px;
+  width: 50px; height: 50px;
+  animation-delay: -1800ms;
+}
+
+@keyframes floating { 
+  0% { transform: translateY(0px); } 
+  50% { transform: translateY(10px); } 
+  100% { transform: translateY(0px); } 
+}
+
+.rank-badge-card {
+  background-color: rgba(0,0,0,0.6);
+  padding: 5px 15px;
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
+  width: fit-content;
+  color: #00ff9d;
+  font-weight: bold;
+  border: 1px solid rgba(0,255,157,0.3);
+}
+
+.leader-description {
+  box-shadow: 0px 0px 10px 5px rgba(0,0,0,0.3);
+  width: 100%;
+  padding: 15px;
+  background-color: rgba(0,0,0,0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
